@@ -25,19 +25,26 @@ export async function watch(config: SpektaConfig): Promise<void> {
   // Start HTTP server
   const server = startServer(webPath);
 
-  // Watch spec directories
+  // Watch spec directories (based on configured analyzers)
   const watchDirs: string[] = [];
-  const featuresDir = path.join(specDir, "features");
-  const systemDir = path.join(specDir, "system");
-  if (fs.existsSync(featuresDir)) watchDirs.push(featuresDir);
-  if (fs.existsSync(systemDir)) watchDirs.push(systemDir);
+  if (config.analyzer.rspec) {
+    for (const t of config.analyzer.rspec.spec_types) {
+      const sub = t === "feature_spec" ? "features" : t === "system_spec" ? "system" : t;
+      const dir = path.join(specDir, sub);
+      if (fs.existsSync(dir)) watchDirs.push(dir);
+    }
+  }
+  if (config.analyzer.vitest) {
+    const vitestDir = path.resolve(config.analyzer.vitest.spec_dir ?? config.spec_dir);
+    if (fs.existsSync(vitestDir)) watchDirs.push(vitestDir);
+  }
 
   console.log(`Watching: ${watchDirs.join(", ")}`);
 
   let buildTimer: ReturnType<typeof setTimeout> | null = null;
 
   const onFileChange = (filename: string | null): void => {
-    if (filename && !filename.endsWith("_spec.rb")) return;
+    if (filename && !filename.endsWith("_spec.rb") && !filename.endsWith(".test.ts")) return;
     if (buildTimer) clearTimeout(buildTimer);
     buildTimer = setTimeout(async () => {
       console.log(`\nSpec file changed${filename ? `: ${filename}` : ""}. Rebuilding...`);

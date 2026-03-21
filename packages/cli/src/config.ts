@@ -67,6 +67,7 @@ export function loadConfig(root?: string): SpektaConfig {
   const vitestConfig = vitestRaw !== undefined
     ? {
         spec_dir: typeof vitestRaw.spec_dir === "string" ? vitestRaw.spec_dir : undefined,
+        exclude: Array.isArray(vitestRaw.exclude) ? vitestRaw.exclude as string[] : undefined,
       }
     : undefined;
 

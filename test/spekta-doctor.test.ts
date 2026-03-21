@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { execSync } from "node:child_process";
 import * as path from "node:path";
-import { fixturesDir } from "./helpers.js";
+import { rspecFixturesDir } from "./helpers.js";
 
 describe("spekta doctor", () => {
   const binPath = path.resolve(import.meta.dirname ?? __dirname, "../packages/cli/bin/spekta.js");
@@ -25,7 +25,7 @@ describe("spekta doctor", () => {
 
   describe("プロジェクトディレクトリで実行した場合", () => {
     it(".spekta.yml が見つかると表示する", () => {
-      const { dir, cleanup } = { dir: fixturesDir(), cleanup: () => {} };
+      const { dir, cleanup } = { dir: rspecFixturesDir(), cleanup: () => {} };
       try {
         const output = runDoctor(dir);
         expect(output).toContain("[+] .spekta.yml: found");
@@ -35,7 +35,7 @@ describe("spekta doctor", () => {
     });
 
     it("spec ディレクトリが見つかると表示する", () => {
-      const { dir, cleanup } = { dir: fixturesDir(), cleanup: () => {} };
+      const { dir, cleanup } = { dir: rspecFixturesDir(), cleanup: () => {} };
       try {
         const output = runDoctor(dir);
         expect(output).toContain("spec/features");

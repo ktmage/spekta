@@ -28,7 +28,10 @@ export function analyzeAll(
   // Vitest analyzer
   if (config.analyzer.vitest) {
     const specDir = path.resolve(config.analyzer.vitest.spec_dir ?? config.spec_dir);
-    const files = collectTestTsFiles(specDir);
+    const files = collectTestTsFiles(specDir).filter(f => {
+      const exclude = config.analyzer.vitest?.exclude ?? [];
+      return !exclude.some(pattern => f.includes(pattern));
+    });
     for (const file of files) {
       const pages = runVitestAnalyzer([file]);
       allPages.push(...pages);

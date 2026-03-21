@@ -3,9 +3,8 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as http from "node:http";
 import { spawn, type ChildProcess } from "node:child_process";
-import { fixturesDir, isRubyAvailable } from "./helpers.js";
+import { vitestFixturesDir } from "./helpers.js";
 
-const rubyAvailable = isRubyAvailable();
 const binPath = path.resolve(import.meta.dirname ?? __dirname, "../packages/cli/bin/spekta.js");
 
 function waitFor(ms: number): Promise<void> {
@@ -22,8 +21,8 @@ function httpGet(url: string): Promise<{ status: number; body: string }> {
   });
 }
 
-describe.runIf(rubyAvailable)("spekta watch", () => {
-  const projectDir = fixturesDir();
+describe("spekta watch", () => {
+  const projectDir = vitestFixturesDir();
   let watchProcess: ChildProcess;
   const port = 4321;
 
@@ -58,7 +57,7 @@ describe.runIf(rubyAvailable)("spekta watch", () => {
   });
 
   it("spec ファイルを変更するとリビルドされる", async () => {
-    const specFile = path.join(projectDir, "spec/features/search_spec.rb");
+    const specFile = path.join(projectDir, "test/search.test.ts");
     const original = fs.readFileSync(specFile, "utf-8");
 
     fs.writeFileSync(specFile, original.replace(

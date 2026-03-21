@@ -3,6 +3,8 @@ spec_dir: test/
 analyzer:
   vitest:
     spec_dir: test/
+    exclude:
+      - fixtures/
 
 renderer:
   web:

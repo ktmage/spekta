@@ -73,6 +73,7 @@ export interface SpektaConfig {
     };
     vitest?: {
       spec_dir?: string;
+      exclude?: string[];
     };
   };
   renderer: {

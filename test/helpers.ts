@@ -2,19 +2,18 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { execSync } from "node:child_process";
 
-/**
- * テスト用フィクスチャのディレクトリパスを返す。
- * コピーせず直接参照する（Gemfileの相対パスを壊さないため）。
- */
-export function fixturesDir(): string {
-  return path.resolve(import.meta.dirname ?? __dirname, "fixtures/rspec-project");
+const baseDir = import.meta.dirname ?? __dirname;
+const binPath = path.resolve(baseDir, "../packages/cli/bin/spekta.js");
+
+export function rspecFixturesDir(): string {
+  return path.resolve(baseDir, "fixtures/rspec-project");
 }
 
-/**
- * テストプロジェクトで spekta build を実行する。
- */
+export function vitestFixturesDir(): string {
+  return path.resolve(baseDir, "fixtures/vitest-project");
+}
+
 export function runSpektaBuild(projectDir: string): { success: boolean; output: string } {
-  const binPath = path.resolve(import.meta.dirname ?? __dirname, "../packages/cli/bin/spekta.js");
   try {
     const output = execSync(`node ${binPath} build`, {
       cwd: projectDir,
@@ -27,9 +26,6 @@ export function runSpektaBuild(projectDir: string): { success: boolean; output: 
   }
 }
 
-/**
- * Ruby 3.3+ が利用可能かチェック。
- */
 export function isRubyAvailable(): boolean {
   try {
     const version = execSync("ruby --version", { encoding: "utf-8" });
@@ -39,4 +35,18 @@ export function isRubyAvailable(): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * 生成されたHTMLの中から共通の検証を行うヘルパー。
+ */
+export function getGeneratedPages(webDir: string): string[] {
+  if (!fs.existsSync(webDir)) return [];
+  return fs.readdirSync(webDir).filter(e =>
+    fs.statSync(path.join(webDir, e)).isDirectory() && e !== "images"
+  );
+}
+
+export function readPageHtml(webDir: string, pageId: string): string {
+  return fs.readFileSync(path.join(webDir, pageId, "index.html"), "utf-8");
 }
