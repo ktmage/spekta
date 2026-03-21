@@ -1,0 +1,5 @@
+source "https://rubygems.org"
+
+gemspec
+
+gem "spekta-analyzer-rspec", path: "../analyzer-rspec"

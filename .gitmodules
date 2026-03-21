@@ -1,0 +1,6 @@
+[submodule "packages/analyzer-rspec"]
+	path = packages/analyzer-rspec
+	url = https://github.com/ktmage/spekta-analyzer-rspec.git
+[submodule "packages/renderer-web"]
+	path = packages/renderer-web
+	url = https://github.com/ktmage/spekta-renderer-web.git

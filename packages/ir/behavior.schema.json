@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spekta.dev/schemas/behavior.schema.json",
+  "title": "Spekta Behavior IR",
+  "description": "Language-agnostic intermediate representation for test behavior hierarchies.",
+  "type": "object",
+  "required": ["version", "sources"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version identifier."
+    },
+    "sources": {
+      "type": "array",
+      "description": "Array of source files that were analyzed.",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "description": "A single test source file and its top-level groups.",
+      "required": ["file", "type", "groups"],
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "Path to the source file, relative to the project root."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["feature_spec", "system_spec"],
+          "description": "The kind of spec this source file represents."
+        },
+        "groups": {
+          "type": "array",
+          "description": "Top-level group nodes in this source file.",
+          "items": {
+            "$ref": "#/$defs/groupNode"
+          }
+        }
+      }
+    },
+    "groupNode": {
+      "type": "object",
+      "description": "A group node representing a level in the test hierarchy (feature, describe, or context).",
+      "required": ["type", "description", "children"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["feature", "describe", "context"],
+          "description": "The kind of group: feature (top-level feature block), describe (subject or scope), or context (conditional branch)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of this group."
+        },
+        "children": {
+          "type": "array",
+          "description": "Child nodes, which may be nested groups or example leaf nodes.",
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/groupNode" },
+              { "$ref": "#/$defs/exampleNode" }
+            ]
+          }
+        }
+      }
+    },
+    "exampleNode": {
+      "type": "object",
+      "description": "An example node representing an individual test case.",
+      "required": ["type", "description", "comments", "steps"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["scenario", "it"],
+          "description": "The kind of example: scenario (Capybara/feature spec style) or it (RSpec style)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the expected behavior."
+        },
+        "comments": {
+          "type": "array",
+          "description": "Attribute comments attached to this example, providing metadata such as rationale.",
+          "items": {
+            "$ref": "#/$defs/comment"
+          }
+        },
+        "steps": {
+          "type": "array",
+          "description": "Ordered sequence of actions performed within this example.",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      }
+    },
+    "comment": {
+      "type": "object",
+      "description": "An attribute comment providing metadata about an example. Attribute semantics are defined in the IR spec, not in the analyzer.",
+      "required": ["attribute", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "attribute": {
+          "type": "string",
+          "description": "The attribute name (e.g. 'why'). Defines the kind of metadata this comment carries."
+        },
+        "text": {
+          "type": "string",
+          "description": "The content of the attribute comment."
+        }
+      }
+    },
+    "step": {
+      "type": "object",
+      "description": "A single action or assertion within an example.",
+      "required": ["action", "target"],
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["visit", "click_on", "fill_in", "select", "expect", "other"],
+          "description": "The type of action: visit (navigate to URL), click_on (click an element), fill_in (enter text into a field), select (choose from a dropdown), expect (assert a condition), or other (any action not covered by the above)."
+        },
+        "target": {
+          "type": "string",
+          "description": "The target of the action (e.g. a URL path, button label, field name, or expected content)."
+        },
+        "value": {
+          "type": "string",
+          "description": "Optional value associated with the action (e.g. the text to fill in, the option to select)."
+        }
+      }
+    }
+  }
+}

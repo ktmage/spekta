@@ -1,0 +1,17 @@
+# Spekta 設定ファイル
+# プロジェクトルートに .spekta.yml として配置してください。
+
+# spec ファイルが配置されているディレクトリのパス
+spec_dir: spec/
+
+# 出力設定
+output:
+  # 出力フォーマット (Phase 1 では html のみ対応)
+  format: html
+  # ドキュメントの出力先ディレクトリパス
+  path: dist/spekta
+
+# 解析対象とする spec の種類
+spec_types:
+  - feature_spec
+  - system_spec
