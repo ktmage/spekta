@@ -59,6 +59,13 @@
           "type": "string",
           "description": "Human-readable description of this group."
         },
+        "comments": {
+          "type": "array",
+          "description": "Attribute comments attached to this group (e.g. summary, see, graph).",
+          "items": {
+            "$ref": "#/$defs/comment"
+          }
+        },
         "children": {
           "type": "array",
           "description": "Child nodes, which may be nested groups or example leaf nodes.",
@@ -110,7 +117,8 @@
       "properties": {
         "attribute": {
           "type": "string",
-          "description": "The attribute name (e.g. 'why'). Defines the kind of metadata this comment carries."
+          "enum": ["summary", "why", "see", "image", "graph"],
+          "description": "The attribute name. summary: overview description, why: rationale, see: related feature reference, image: screenshot path, graph: Mermaid diagram."
         },
         "text": {
           "type": "string",

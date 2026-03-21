@@ -48,7 +48,43 @@ module Spekta
         ir_file = File.join(RENDERER_DATA_PATH, "behavior.json")
         File.write(ir_file, JSON.pretty_generate(ir))
         puts "  IR 出力: #{ir_file}"
+
+        # 画像ファイルをレンダラーにコピー
+        copy_images(ir, File.dirname(spec_dir))
+
         puts "spekta build: 完了 (#{sources.length} ファイル解析)"
+      end
+      def copy_images(ir, base_path)
+        images_dir = File.join(RENDERER_DATA_PATH, "images")
+        FileUtils.mkdir_p(images_dir)
+
+        image_paths = collect_image_paths(ir)
+        return if image_paths.empty?
+
+        image_paths.each do |path|
+          src = File.join(base_path, path)
+          if File.exist?(src)
+            FileUtils.cp(src, images_dir)
+            puts "  画像コピー: #{path}"
+          end
+        end
+      end
+
+      def collect_image_paths(ir)
+        paths = []
+        ir[:sources].each do |source|
+          collect_comments_recursive(source[:groups], paths)
+        end
+        paths.uniq
+      end
+
+      def collect_comments_recursive(nodes, paths)
+        nodes.each do |node|
+          (node[:comments] || []).each do |c|
+            paths << c[:text] if c[:attribute] == "image"
+          end
+          collect_comments_recursive(node[:children] || [], paths)
+        end
       end
     end
   end
