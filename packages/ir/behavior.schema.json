@@ -2,148 +2,134 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://spekta.dev/schemas/behavior.schema.json",
   "title": "Spekta Behavior IR",
-  "description": "Language-agnostic intermediate representation for test behavior hierarchies.",
+  "description": "Language-agnostic intermediate representation for behavior specifications. Structured as pages and sections, independent of any test framework.",
   "type": "object",
-  "required": ["version", "sources"],
+  "required": ["version", "pages"],
   "additionalProperties": false,
   "properties": {
     "version": {
       "type": "string",
       "description": "Schema version identifier."
     },
-    "sources": {
+    "pages": {
       "type": "array",
-      "description": "Array of source files that were analyzed.",
+      "description": "Top-level document units.",
       "items": {
-        "$ref": "#/$defs/source"
+        "$ref": "#/$defs/page"
       }
     }
   },
   "$defs": {
-    "source": {
+    "page": {
       "type": "object",
-      "description": "A single test source file and its top-level groups.",
-      "required": ["file", "type", "groups"],
+      "description": "A document unit representing a specification page.",
+      "required": ["id", "type", "title"],
       "additionalProperties": false,
       "properties": {
-        "file": {
+        "id": {
           "type": "string",
-          "description": "Path to the source file, relative to the project root."
+          "description": "Unique identifier for this page."
         },
         "type": {
           "type": "string",
-          "enum": ["feature_spec", "system_spec"],
-          "description": "The kind of spec this source file represents."
+          "description": "The document type of this page (e.g. feature). Extensible for future types such as api or data_model."
         },
-        "groups": {
+        "title": {
+          "type": "string",
+          "description": "Human-readable title of this page."
+        },
+        "attributes": {
           "type": "array",
-          "description": "Top-level group nodes in this source file.",
+          "description": "Optional metadata attributes (summary, why, see, image, graph).",
           "items": {
-            "$ref": "#/$defs/groupNode"
+            "$ref": "#/$defs/attribute"
+          }
+        },
+        "sections": {
+          "type": "array",
+          "description": "Child sections of this page.",
+          "items": {
+            "$ref": "#/$defs/section"
           }
         }
       }
     },
-    "groupNode": {
+    "section": {
       "type": "object",
-      "description": "A group node representing a level in the test hierarchy (feature, describe, or context).",
-      "required": ["type", "description", "children"],
+      "description": "A section within a page. Sections can nest recursively and may contain steps.",
+      "required": ["id", "title"],
       "additionalProperties": false,
       "properties": {
-        "type": {
+        "id": {
           "type": "string",
-          "enum": ["feature", "describe", "context"],
-          "description": "The kind of group: feature (top-level feature block), describe (subject or scope), or context (conditional branch)."
+          "description": "Unique identifier for this section."
         },
-        "description": {
+        "title": {
           "type": "string",
-          "description": "Human-readable description of this group."
+          "description": "Human-readable title of this section."
         },
-        "comments": {
+        "attributes": {
           "type": "array",
-          "description": "Attribute comments attached to this group (e.g. summary, see, graph).",
+          "description": "Optional metadata attributes.",
           "items": {
-            "$ref": "#/$defs/comment"
+            "$ref": "#/$defs/attribute"
           }
         },
-        "children": {
+        "sections": {
           "type": "array",
-          "description": "Child nodes, which may be nested groups or example leaf nodes.",
+          "description": "Nested child sections.",
           "items": {
-            "oneOf": [
-              { "$ref": "#/$defs/groupNode" },
-              { "$ref": "#/$defs/exampleNode" }
-            ]
-          }
-        }
-      }
-    },
-    "exampleNode": {
-      "type": "object",
-      "description": "An example node representing an individual test case.",
-      "required": ["type", "description", "comments", "steps"],
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": ["scenario", "it"],
-          "description": "The kind of example: scenario (Capybara/feature spec style) or it (RSpec style)."
-        },
-        "description": {
-          "type": "string",
-          "description": "Human-readable description of the expected behavior."
-        },
-        "comments": {
-          "type": "array",
-          "description": "Attribute comments attached to this example, providing metadata such as rationale.",
-          "items": {
-            "$ref": "#/$defs/comment"
+            "$ref": "#/$defs/section"
           }
         },
         "steps": {
           "type": "array",
-          "description": "Ordered sequence of actions performed within this example.",
+          "description": "Ordered sequence of actions. Present on leaf sections that describe specific behaviors.",
           "items": {
             "$ref": "#/$defs/step"
           }
         }
       }
     },
-    "comment": {
+    "attribute": {
       "type": "object",
-      "description": "An attribute comment providing metadata about an example. Attribute semantics are defined in the IR spec, not in the analyzer.",
-      "required": ["attribute", "text"],
+      "description": "Metadata attached to a page or section. The type field determines the kind of metadata.",
+      "required": ["type"],
       "additionalProperties": false,
       "properties": {
-        "attribute": {
+        "type": {
           "type": "string",
           "enum": ["summary", "why", "see", "image", "graph"],
-          "description": "The attribute name. summary: overview description, why: rationale, see: related feature reference, image: screenshot path, graph: Mermaid diagram."
+          "description": "The kind of attribute. summary: overview text, why: rationale, see: reference to another page (via ref), image: image path, graph: Mermaid diagram text."
         },
         "text": {
           "type": "string",
-          "description": "The content of the attribute comment."
+          "description": "Text content of the attribute. Used by summary, why, image, and graph."
+        },
+        "ref": {
+          "type": "string",
+          "description": "Reference to another page by ID. Used by see attributes."
         }
       }
     },
     "step": {
       "type": "object",
-      "description": "A single action or assertion within an example.",
+      "description": "A single action or assertion within a section.",
       "required": ["action", "target"],
       "additionalProperties": false,
       "properties": {
         "action": {
           "type": "string",
           "enum": ["visit", "click_on", "fill_in", "select", "expect", "other"],
-          "description": "The type of action: visit (navigate to URL), click_on (click an element), fill_in (enter text into a field), select (choose from a dropdown), expect (assert a condition), or other (any action not covered by the above)."
+          "description": "The type of action."
         },
         "target": {
           "type": "string",
-          "description": "The target of the action (e.g. a URL path, button label, field name, or expected content)."
+          "description": "The target of the action."
         },
         "value": {
           "type": "string",
-          "description": "Optional value associated with the action (e.g. the text to fill in, the option to select)."
+          "description": "Optional value associated with the action."
         }
       }
     }
