@@ -1,2 +1,8 @@
 /testbed/
 .docs/
+node_modules/
+dist/
+.astro/
+packages/renderers/web/public/data/behavior.json
+packages/renderers/web/public/data/site.json
+packages/renderers/web/public/data/images/

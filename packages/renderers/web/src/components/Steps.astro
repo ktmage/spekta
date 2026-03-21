@@ -1,0 +1,16 @@
+---
+import type { Step } from "../lib/ir";
+import { stepToPhrase } from "../lib/ir";
+
+interface Props {
+  steps: Step[];
+}
+
+const { steps } = Astro.props;
+---
+
+<ol class="spec-example__steps">
+  {steps.map((step) => (
+    <li>{stepToPhrase(step)}</li>
+  ))}
+</ol>

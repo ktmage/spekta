@@ -1,0 +1,16 @@
+{
+  "name": "@spekta/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "spekta": "./bin/spekta.js" },
+  "scripts": { "build": "tsc", "dev": "tsc --watch" },
+  "dependencies": {
+    "yaml": "^2.0.0",
+    "chokidar": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^22.0.0"
+  }
+}

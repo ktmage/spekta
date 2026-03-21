@@ -1,0 +1,74 @@
+---
+import type { Section as SectionType, Page } from "../lib/ir";
+import Steps from "./Steps.astro";
+import WhyCallout from "./WhyCallout.astro";
+import RelatedLinks from "./RelatedLinks.astro";
+import MermaidDiagram from "./MermaidDiagram.astro";
+
+interface Props {
+  section: SectionType;
+  depth: number;
+  pages: Page[];
+  currentPageId: string;
+}
+
+const { section, depth, pages, currentPageId } = Astro.props;
+
+// Determine depth class (cap at 4)
+const depthClass = `spec-group--depth-${Math.min(depth, 4)}`;
+
+// Extract attributes
+const summary = section.attributes?.find((a) => a.type === "summary");
+const whyAttr = section.attributes?.find((a) => a.type === "why");
+const seeAttrs = section.attributes?.filter((a) => a.type === "see") ?? [];
+const imageAttr = section.attributes?.find((a) => a.type === "image");
+const graphAttr = section.attributes?.find((a) => a.type === "graph");
+
+// Determine heading level (h2-h5)
+const headingLevel = Math.min(depth + 1, 5);
+
+const hasChildren = section.sections && section.sections.length > 0;
+const hasSteps = section.steps && section.steps.length > 0;
+---
+
+<div class={`spec-group ${depthClass}`} id={section.id}>
+  <div class="spec-group__header">
+    {headingLevel === 2 && <h2 class="spec-group__heading">{section.title}</h2>}
+    {headingLevel === 3 && <h3 class="spec-group__heading">{section.title}</h3>}
+    {headingLevel === 4 && <h4 class="spec-group__heading">{section.title}</h4>}
+    {headingLevel === 5 && <h5 class="spec-group__heading">{section.title}</h5>}
+
+    {summary?.text && (
+      <p class="spec-group__summary">{summary.text}</p>
+    )}
+
+    {seeAttrs.length > 0 && (
+      <RelatedLinks attributes={seeAttrs} pages={pages} />
+    )}
+  </div>
+
+  {whyAttr?.text && <WhyCallout text={whyAttr.text} />}
+
+  {imageAttr?.text && (
+    <div class="spec-image">
+      <img src={`/data/images/${imageAttr.text.split('/').pop()}`} alt={section.title} />
+    </div>
+  )}
+
+  {graphAttr?.text && <MermaidDiagram text={graphAttr.text} />}
+
+  {hasSteps && <Steps steps={section.steps!} />}
+
+  {hasChildren && (
+    <div class="spec-group__children">
+      {section.sections!.map((child) => (
+        <Astro.self
+          section={child}
+          depth={depth + 1}
+          pages={pages}
+          currentPageId={currentPageId}
+        />
+      ))}
+    </div>
+  )}
+</div>

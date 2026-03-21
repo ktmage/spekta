@@ -1,0 +1,30 @@
+---
+import type { Attribute, Page } from "../lib/ir";
+import { findPageById } from "../lib/ir";
+
+interface Props {
+  attributes: Attribute[];
+  pages: Page[];
+}
+
+const { attributes, pages } = Astro.props;
+
+const links = attributes
+  .filter((a) => a.type === "see" && a.ref)
+  .map((a) => {
+    const refPage = findPageById(pages, a.ref!);
+    return refPage ? { id: refPage.id, title: refPage.title } : null;
+  })
+  .filter((l) => l !== null);
+---
+
+{links.length > 0 && (
+  <div class="spec-group__related">
+    <span class="spec-group__related-label">関連:</span>
+    {links.map((link) => (
+      <a href={`/${link.id}/`} class="spec-group__related-link">
+        {link.title}
+      </a>
+    ))}
+  </div>
+)}

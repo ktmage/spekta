@@ -1,0 +1,12 @@
+---
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+---
+
+<div class="spec-callout--why">
+  <div class="spec-callout__label">なぜ？</div>
+  <div class="spec-callout__text">{text}</div>
+</div>
