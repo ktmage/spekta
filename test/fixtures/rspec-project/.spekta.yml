@@ -1,0 +1,13 @@
+spec_dir: spec/
+
+analyzer:
+  rspec:
+    spec_types:
+      - feature_spec
+      - system_spec
+
+renderer:
+  web:
+    name: "テストプロダクト"
+    description: "テスト用のプロダクト"
+  markdown: {}
