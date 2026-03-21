@@ -12,7 +12,7 @@ export async function build(config: SpektaConfig, options: BuildOptions): Promis
 
   console.log(`Analyzing spec files in: ${specDir}`);
 
-  const { pages, fileToPages } = analyzeAll(specDir, config.analyzer.rspec.spec_types);
+  const { pages, fileToPages } = analyzeAll(config);
 
   if (pages.length === 0) {
     console.warn("No pages found. Check your spec files and configuration.");

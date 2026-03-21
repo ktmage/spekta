@@ -62,12 +62,19 @@ export function loadConfig(root?: string): SpektaConfig {
       }
     : undefined;
 
+  // analyzer.vitest
+  const vitestRaw = analyzerRaw?.vitest as Record<string, unknown> | undefined;
+  const vitestConfig = vitestRaw !== undefined
+    ? {
+        spec_dir: typeof vitestRaw.spec_dir === "string" ? vitestRaw.spec_dir : undefined,
+      }
+    : undefined;
+
   return {
     spec_dir: specDir,
     analyzer: {
-      rspec: {
-        spec_types: specTypes,
-      },
+      rspec: rspecRaw !== undefined ? { spec_types: specTypes } : undefined,
+      vitest: vitestConfig,
     },
     renderer: {
       web: webConfig,

@@ -1,3 +1,6 @@
 [submodule "packages/analyzers/rspec"]
 	path = packages/analyzers/rspec
 	url = https://github.com/ktmage/spekta-analyzer-rspec.git
+[submodule "packages/analyzers/vitest"]
+	path = packages/analyzers/vitest
+	url = https://github.com/ktmage/spekta-analyzer-vitest.git

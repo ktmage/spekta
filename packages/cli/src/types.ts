@@ -68,8 +68,11 @@ export interface SiteInfo {
 export interface SpektaConfig {
   spec_dir: string;
   analyzer: {
-    rspec: {
+    rspec?: {
       spec_types: string[];
+    };
+    vitest?: {
+      spec_dir?: string;
     };
   };
   renderer: {

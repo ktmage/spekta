@@ -1,0 +1,11 @@
+spec_dir: test/
+
+analyzer:
+  vitest:
+    spec_dir: test/
+
+renderer:
+  web:
+    name: "Spekta"
+    description: "テストコードから仕様書を生成するツールチェイン"
+  markdown: {}
