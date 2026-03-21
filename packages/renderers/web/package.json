@@ -3,19 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview"
-  },
-  "dependencies": {
-    "@astrojs/preact": "^5.0.2",
-    "astro": "^6.0.8",
-    "preact": "^10.29.0"
-  },
+  "main": "dist/render.js",
+  "scripts": { "build": "tsc" },
   "devDependencies": {
-    "@astrojs/check": "^0.9.8",
-    "@types/node": "^25.5.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.0.0",
+    "@types/node": "^22.0.0"
   }
 }

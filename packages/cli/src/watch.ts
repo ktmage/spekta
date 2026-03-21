@@ -1,20 +1,29 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { spawn, type ChildProcess } from "node:child_process";
+import * as http from "node:http";
 import type { SpektaConfig } from "./types.js";
 import { build } from "./build.js";
 
+const DEFAULT_PORT = 4321;
+
+// SSE clients for hot reload
+const sseClients: Set<http.ServerResponse> = new Set();
+
+function notifyReload(): void {
+  for (const res of sseClients) {
+    res.write("data: reload\n\n");
+  }
+}
+
 export async function watch(config: SpektaConfig): Promise<void> {
   const specDir = path.resolve(config.spec_dir);
+  const webPath = path.resolve(config.renderer.web?.path ?? ".spekta/web");
 
   console.log("Running initial build...");
   await build(config, { mode: "development" });
 
-  // Start Astro dev server
-  let astroProcess: ChildProcess | null = null;
-  if (config.renderer.web) {
-    astroProcess = startAstroDevServer();
-  }
+  // Start HTTP server
+  const server = startServer(webPath);
 
   // Watch spec directories
   const watchDirs: string[] = [];
@@ -34,6 +43,7 @@ export async function watch(config: SpektaConfig): Promise<void> {
       console.log(`\nSpec file changed${filename ? `: ${filename}` : ""}. Rebuilding...`);
       try {
         await build(config, { mode: "development" });
+        notifyReload();
         console.log("Rebuild complete.");
       } catch (err) {
         console.error("Rebuild failed:", err);
@@ -52,7 +62,8 @@ export async function watch(config: SpektaConfig): Promise<void> {
   const cleanup = (): void => {
     console.log("\nShutting down...");
     for (const w of watchers) w.close();
-    if (astroProcess) astroProcess.kill();
+    for (const res of sseClients) res.end();
+    server.close();
     process.exit(0);
   };
 
@@ -62,33 +73,90 @@ export async function watch(config: SpektaConfig): Promise<void> {
   console.log("Watch mode active. Press Ctrl+C to stop.");
 }
 
-function startAstroDevServer(): ChildProcess {
-  const rendererWebDir = path.resolve(
-    import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname),
-    "../../renderers/web",
-  );
+function startServer(webPath: string): http.Server {
+  const server = http.createServer((req, res) => {
+    const url = new URL(req.url ?? "/", `http://localhost:${DEFAULT_PORT}`);
 
-  console.log(`Starting Astro dev server in: ${rendererWebDir}`);
+    // SSE endpoint for hot reload
+    if (url.pathname === "/__reload") {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+      });
+      sseClients.add(res);
+      req.on("close", () => sseClients.delete(res));
+      return;
+    }
 
-  const child = spawn("npm", ["run", "dev"], {
-    cwd: rendererWebDir,
-    stdio: ["pipe", "pipe", "pipe"],
-    shell: true,
+    let filePath = path.join(webPath, url.pathname);
+
+    // Directory → index.html
+    if (filePath.endsWith("/") || !path.extname(filePath)) {
+      const indexPath = path.join(
+        filePath.endsWith("/") ? filePath : filePath,
+        "index.html",
+      );
+      if (fs.existsSync(indexPath)) {
+        filePath = indexPath;
+      }
+    }
+
+    if (!fs.existsSync(filePath)) {
+      const notFound = path.join(webPath, "404.html");
+      if (fs.existsSync(notFound)) {
+        res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
+        fs.createReadStream(notFound).pipe(res);
+      } else {
+        res.writeHead(404);
+        res.end("Not found");
+      }
+      return;
+    }
+
+    const ext = path.extname(filePath);
+    const mimeTypes: Record<string, string> = {
+      ".html": "text/html; charset=utf-8",
+      ".css": "text/css",
+      ".js": "application/javascript",
+      ".json": "application/json",
+      ".svg": "image/svg+xml",
+      ".png": "image/png",
+      ".jpg": "image/jpeg",
+    };
+
+    // Inject reload script into HTML
+    if (ext === ".html") {
+      let html = fs.readFileSync(filePath, "utf-8");
+      html = html.replace("</body>", `<script>${RELOAD_SCRIPT}</script></body>`);
+      res.writeHead(200, {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store",
+      });
+      res.end(html);
+      return;
+    }
+
+    res.writeHead(200, {
+      "Content-Type": mimeTypes[ext] || "application/octet-stream",
+      "Cache-Control": "no-store",
+    });
+    fs.createReadStream(filePath).pipe(res);
   });
 
-  child.stdout?.on("data", (data: Buffer) => {
-    const line = data.toString().trim();
-    if (line) console.log(`[astro] ${line}`);
+  server.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`Port ${DEFAULT_PORT} is already in use. Kill the existing process or use a different port.`);
+      process.exit(1);
+    }
+    throw err;
   });
 
-  child.stderr?.on("data", (data: Buffer) => {
-    const line = data.toString().trim();
-    if (line) console.error(`[astro] ${line}`);
+  server.listen(DEFAULT_PORT, () => {
+    console.log(`http://localhost:${DEFAULT_PORT}/`);
   });
 
-  child.on("error", (err) => {
-    console.error("Failed to start Astro dev server:", err);
-  });
-
-  return child;
+  return server;
 }
+
+const RELOAD_SCRIPT = `new EventSource("/__reload").onmessage=function(){location.reload()};`;

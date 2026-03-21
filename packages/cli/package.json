@@ -1,7 +1,6 @@
 {
-  "name": "@spekta/cli",
+  "name": "spekta",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "bin": { "spekta": "./bin/spekta.js" },
   "scripts": { "build": "tsc", "dev": "tsc --watch" },

@@ -1,6 +1,7 @@
 import { loadConfig } from "./config.js";
 import { build } from "./build.js";
 import { watch } from "./watch.js";
+import { doctor } from "./doctor.js";
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -9,6 +10,11 @@ async function main(): Promise<void> {
   if (!command || command === "--help" || command === "-h") {
     printUsage();
     process.exit(0);
+  }
+
+  if (command === "doctor") {
+    doctor();
+    return;
   }
 
   const config = loadConfig();
@@ -31,8 +37,9 @@ function printUsage(): void {
   console.log(`Usage: spekta <command>
 
 Commands:
-  build   Analyze spec files and generate documentation
-  watch   Watch spec files and rebuild on changes`);
+  build    Analyze spec files and generate documentation
+  watch    Watch spec files and rebuild on changes
+  doctor   Check environment and dependencies`);
 }
 
 main();
