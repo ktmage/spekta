@@ -9,22 +9,22 @@ export interface RenderOptions {
 }
 
 /**
- * Parse [spekta:*] comments from spec files and export documentation.
+ * Parse [spekta:*] comments from test files and export documentation.
  *
  * Flow:
- *   1. Collect spec files from config
+ *   1. Collect test files from config
  *   2. Parser reads [spekta:*] comments → IR
  *   3. Exporter writes IR → Document
  */
 export async function render(config: SpektaConfig, options: RenderOptions): Promise<void> {
-  const filePaths = collectSpecFiles(config);
+  const filePaths = collectTargetFiles(config);
 
   if (filePaths.length === 0) {
-    console.warn("No spec files found. Check your configuration.");
+    console.warn("No test files found. Check your configuration.");
     return;
   }
 
-  console.log(`Parsing ${filePaths.length} spec file(s)...`);
+  console.log(`Parsing ${filePaths.length} test file(s)...`);
 
   const { pages, fileToPages } = parseFiles(filePaths);
 
@@ -45,7 +45,7 @@ export async function render(config: SpektaConfig, options: RenderOptions): Prom
   console.log("Build complete.");
 }
 
-function collectSpecFiles(config: SpektaConfig): string[] {
+function collectTargetFiles(config: SpektaConfig): string[] {
   const targetDir = path.resolve(config.target_dir);
   const extensions = [".test.ts", ".spec.ts", "_spec.rb"];
   const exclude = config.analyzer?.vitest?.exclude ?? [];

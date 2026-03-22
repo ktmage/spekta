@@ -45,10 +45,10 @@ function printUsage(): void {
   console.log(`Usage: spekta <command>
 
 Commands:
-  build      Run annotators, parse spec files, and generate documentation
-  render     Parse spec files and generate documentation (skip annotators)
+  build      Run annotators, parse test files, and generate documentation
+  render     Parse test files and generate documentation (skip annotators)
   complete   Run annotator plugins to auto-complete comments
-  watch      Watch spec files and rebuild on changes
+  watch      Watch test files and rebuild on changes
   doctor     Check environment and dependencies`);
 }
 

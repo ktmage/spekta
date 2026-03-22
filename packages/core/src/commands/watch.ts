@@ -25,7 +25,7 @@ export async function watch(config: SpektaConfig): Promise<void> {
   // Start HTTP server
   const server = startServer(webPath);
 
-  // Watch spec directories (based on configured analyzers)
+  // Watch target directories
   const watchDirs: string[] = [];
   if (config.analyzer.rspec) {
     for (const t of config.analyzer.rspec.spec_types) {
@@ -47,7 +47,7 @@ export async function watch(config: SpektaConfig): Promise<void> {
     if (filename && !filename.endsWith("_spec.rb") && !filename.endsWith(".test.ts")) return;
     if (buildTimer) clearTimeout(buildTimer);
     buildTimer = setTimeout(async () => {
-      console.log(`\nSpec file changed${filename ? `: ${filename}` : ""}. Rebuilding...`);
+      console.log(`\nFile changed${filename ? `: ${filename}` : ""}. Rebuilding...`);
       try {
         await build(config, { mode: "development" });
         notifyReload();
