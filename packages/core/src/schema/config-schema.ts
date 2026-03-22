@@ -9,7 +9,7 @@ const pluginOptionsSchema = z.record(z.string(), z.unknown()).nullable();
 const pluginMapSchema = z.record(z.string(), pluginOptionsSchema).optional();
 
 export const spektaConfigSchema = z.object({
-  target_dir: z.string().default("test/"),
+  target_dir: z.string(),
   include:    z.array(z.string()).optional(),
   exclude:    z.array(z.string()).optional(),
   annotator:  pluginMapSchema,
