@@ -91,6 +91,7 @@ function startServer(webPath: string): http.Server {
         "Cache-Control": "no-cache",
         "Connection": "keep-alive",
       });
+      res.write(": connected\n\n");
       sseClients.add(res);
       req.on("close", () => sseClients.delete(res));
       return;

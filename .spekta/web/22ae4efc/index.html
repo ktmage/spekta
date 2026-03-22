@@ -374,7 +374,7 @@ details[open] > summary .sidebar__toggle { transform: rotate(90deg); }
                 <span class="sidebar__toggle"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
               </a>
             </summary>
-            <ul class="sidebar__subtree"><li><a href="/77a4697e/#662c76d5" class="sidebar__sublink">RSpec の Feature spec から仕様書を生成できる</a><ul class="sidebar__subtree"><li><a href="/77a4697e/#48ef2ce9" class="sidebar__sublink">Web レンダラー</a></li><li><a href="/77a4697e/#dfb5e3d1" class="sidebar__sublink">Markdown レンダラー</a></li></ul></li><li><a href="/77a4697e/#a7141a9a" class="sidebar__sublink">Vitest のテストから仕様書を生成できる</a><ul class="sidebar__subtree"><li><a href="/77a4697e/#1832a4ee" class="sidebar__sublink sidebar__sublink--leaf">Web レンダラー</a></li><li><a href="/77a4697e/#5d2f1881" class="sidebar__sublink sidebar__sublink--leaf">Markdown レンダラー</a></li></ul></li></ul>
+            <ul class="sidebar__subtree"><li><a href="/77a4697e/#93b6e4da" class="sidebar__sublink">RSpec の Feature spec から仕様書を生成する場合</a><ul class="sidebar__subtree"><li><a href="/77a4697e/#a7e302fa" class="sidebar__sublink">Web レンダラーの場合</a></li><li><a href="/77a4697e/#1205ba0d" class="sidebar__sublink">Markdown レンダラーの場合</a></li></ul></li><li><a href="/77a4697e/#0840597d" class="sidebar__sublink">Vitest のテストから仕様書を生成する場合</a><ul class="sidebar__subtree"><li><a href="/77a4697e/#3446f5ba" class="sidebar__sublink">Web レンダラーの場合</a></li><li><a href="/77a4697e/#9efef88b" class="sidebar__sublink">Markdown レンダラーの場合</a></li></ul></li></ul>
           </details>
         </div>
         <div class="sidebar__section">
@@ -385,7 +385,7 @@ details[open] > summary .sidebar__toggle { transform: rotate(90deg); }
                 <span class="sidebar__toggle"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
               </a>
             </summary>
-            <ul class="sidebar__subtree"><li><a href="/22ae4efc/#c7dac4f6" class="sidebar__sublink">Node.js のバージョンを表示する</a></li><li><a href="/22ae4efc/#aba02cc5" class="sidebar__sublink">プロジェクトディレクトリで実行した場合</a><ul class="sidebar__subtree"><li><a href="/22ae4efc/#7092205a" class="sidebar__sublink sidebar__sublink--leaf">.spekta.yml が見つかると表示する</a></li><li><a href="/22ae4efc/#e1b64dd1" class="sidebar__sublink sidebar__sublink--leaf">spec ディレクトリが見つかると表示する</a></li></ul></li></ul>
+            <ul class="sidebar__subtree"><li><a href="/22ae4efc/#8a499d40" class="sidebar__sublink">Node.js のバージョンを表示すること</a></li><li><a href="/22ae4efc/#aba02cc5" class="sidebar__sublink">プロジェクトディレクトリで実行した場合</a><ul class="sidebar__subtree"><li><a href="/22ae4efc/#47be8be0" class="sidebar__sublink sidebar__sublink--leaf">.spekta.yml が見つかること</a></li><li><a href="/22ae4efc/#02e18923" class="sidebar__sublink sidebar__sublink--leaf">spec ディレクトリが見つかること</a></li></ul></li></ul>
           </details>
         </div>
         <div class="sidebar__section">
@@ -396,7 +396,7 @@ details[open] > summary .sidebar__toggle { transform: rotate(90deg); }
                 <span class="sidebar__toggle"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
               </a>
             </summary>
-            <ul class="sidebar__subtree"><li><a href="/c77d4b37/#5b8d13e4" class="sidebar__sublink">HTTP サーバーが起動してページを配信できる</a></li><li><a href="/c77d4b37/#7fbd643b" class="sidebar__sublink">spec ファイルを変更するとリビルドされる</a></li><li><a href="/c77d4b37/#3d175005" class="sidebar__sublink">SSE エンドポイントが利用可能である</a></li></ul>
+            <ul class="sidebar__subtree"><li><a href="/c77d4b37/#f154490b" class="sidebar__sublink">サーバーが起動している場合</a><ul class="sidebar__subtree"><li><a href="/c77d4b37/#8e53ed24" class="sidebar__sublink sidebar__sublink--leaf">HTTP でページを配信できること</a></li><li><a href="/c77d4b37/#df6d2ea0" class="sidebar__sublink sidebar__sublink--leaf">SSE エンドポイントが利用可能であること</a></li></ul></li><li><a href="/c77d4b37/#e731dfb5" class="sidebar__sublink">spec ファイルを変更した場合</a><ul class="sidebar__subtree"><li><a href="/c77d4b37/#2a295463" class="sidebar__sublink sidebar__sublink--leaf">自動でリビルドされること</a></li></ul></li></ul>
           </details>
         </div>
       </nav>
@@ -410,26 +410,39 @@ details[open] > summary .sidebar__toggle { transform: rotate(90deg); }
     </header>
       <div class="spec-content">
         <h1 class="spec-content__title">spekta doctor</h1>
+        <p class="spec-content__summary">プロジェクトの環境と設定を診断するコマンド。</p>
         <div class="spec-content__body">
-      <div class="spec-group spec-group--depth-1" id="c7dac4f6">
+      <div class="spec-group spec-group--depth-1" id="8a499d40">
   <div class="spec-group__header">
-    <h2 class="spec-group__heading">Node.js のバージョンを表示する</h2>
+    <h2 class="spec-group__heading">Node.js のバージョンを表示すること</h2>
   </div>
+  <ol class="spec-example__steps">
+    <li>spekta doctor を実行する</li>
+    <li>出力に Node.js バージョン情報が含まれる</li>
+  </ol>
 </div>
       <div class="spec-group spec-group--depth-1" id="aba02cc5">
   <div class="spec-group__header">
     <h2 class="spec-group__heading">プロジェクトディレクトリで実行した場合</h2>
   </div>
   <div class="spec-group__children">
-<div class="spec-group spec-group--depth-2" id="7092205a">
+<div class="spec-group spec-group--depth-2" id="47be8be0">
   <div class="spec-group__header">
-    <h3 class="spec-group__heading">.spekta.yml が見つかると表示する</h3>
+    <h3 class="spec-group__heading">.spekta.yml が見つかること</h3>
   </div>
+  <ol class="spec-example__steps">
+    <li>プロジェクトディレクトリで spekta doctor を実行する</li>
+    <li>出力に .spekta.yml: found が含まれる</li>
+  </ol>
 </div>
-<div class="spec-group spec-group--depth-2" id="e1b64dd1">
+<div class="spec-group spec-group--depth-2" id="02e18923">
   <div class="spec-group__header">
-    <h3 class="spec-group__heading">spec ディレクトリが見つかると表示する</h3>
+    <h3 class="spec-group__heading">spec ディレクトリが見つかること</h3>
   </div>
+  <ol class="spec-example__steps">
+    <li>プロジェクトディレクトリで spekta doctor を実行する</li>
+    <li>出力に spec/features パスが含まれる</li>
+  </ol>
 </div>
   </div>
 </div>
@@ -437,7 +450,7 @@ details[open] > summary .sidebar__toggle { transform: rotate(90deg); }
       </div>
       <footer class="site-footer">
       <div class="site-footer__inner">
-        <span class="site-footer__text">Generated by Spekta</span><span class="site-footer__time">2026/03/22 00:43</span>
+        <span class="site-footer__text">Generated by Spekta</span><span class="site-footer__time">2026/03/22 01:12</span>
       </div>
     </footer>
     </main>
@@ -448,7 +461,7 @@ details[open] > summary .sidebar__toggle { transform: rotate(90deg); }
         <line x1="3" y1="15" x2="17" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </button>
-    <script id="spekta-search-data" type="application/json">[{"pageId":"77a4697e","pageTitle":"spekta build"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"662c76d5","sectionTitle":"RSpec の Feature spec から仕様書を生成できる"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"48ef2ce9","sectionTitle":"Web レンダラー"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"af6ea88b","sectionTitle":"HTML にステップが自然言語で表示される"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"beae470c","sectionTitle":"HTML に see 参照がリンクとして含まれる"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"dfb5e3d1","sectionTitle":"Markdown レンダラー"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"6ec3e515","sectionTitle":"Markdown にステップが番号付きリストとして含まれる"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"dc156cd3","sectionTitle":"Markdown に see 参照がリンクとして含まれる"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"a7141a9a","sectionTitle":"Vitest のテストから仕様書を生成できる"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"1832a4ee","sectionTitle":"Web レンダラー"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"5d2f1881","sectionTitle":"Markdown レンダラー"},{"pageId":"22ae4efc","pageTitle":"spekta doctor"},{"pageId":"22ae4efc","pageTitle":"spekta doctor","sectionId":"c7dac4f6","sectionTitle":"Node.js のバージョンを表示する"},{"pageId":"22ae4efc","pageTitle":"spekta doctor","sectionId":"aba02cc5","sectionTitle":"プロジェクトディレクトリで実行した場合"},{"pageId":"22ae4efc","pageTitle":"spekta doctor","sectionId":"7092205a","sectionTitle":".spekta.yml が見つかると表示する"},{"pageId":"22ae4efc","pageTitle":"spekta doctor","sectionId":"e1b64dd1","sectionTitle":"spec ディレクトリが見つかると表示する"},{"pageId":"c77d4b37","pageTitle":"spekta watch"},{"pageId":"c77d4b37","pageTitle":"spekta watch","sectionId":"5b8d13e4","sectionTitle":"HTTP サーバーが起動してページを配信できる"},{"pageId":"c77d4b37","pageTitle":"spekta watch","sectionId":"7fbd643b","sectionTitle":"spec ファイルを変更するとリビルドされる"},{"pageId":"c77d4b37","pageTitle":"spekta watch","sectionId":"3d175005","sectionTitle":"SSE エンドポイントが利用可能である"}]</script>
+    <script id="spekta-search-data" type="application/json">[{"pageId":"77a4697e","pageTitle":"spekta build"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"93b6e4da","sectionTitle":"RSpec の Feature spec から仕様書を生成する場合"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"a7e302fa","sectionTitle":"Web レンダラーの場合"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"3e8954f4","sectionTitle":"ページごとの HTML ファイルが生成されること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"b40c07c1","sectionTitle":"index.html が最初のページにリダイレクトすること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"6fb2e298","sectionTitle":"404.html がルートにリダイレクトすること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"bf56737b","sectionTitle":"HTML にページタイトルが含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"4cf86f13","sectionTitle":"HTML にサイドバーが含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"46890013","sectionTitle":"HTML にヘッダーのプロダクト名が含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"c032b165","sectionTitle":"HTML にフッターが含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"b69686cd","sectionTitle":"HTML にステップが自然言語で表示されること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"f2741baf","sectionTitle":"HTML に see 参照がリンクとして含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"c661c2bc","sectionTitle":"HTML に summary 属性が含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"ef60bf7c","sectionTitle":"HTML に why 属性がコールアウトとして含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"1205ba0d","sectionTitle":"Markdown レンダラーの場合"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"54fd39a4","sectionTitle":"ページごとの .md ファイルが生成されること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"606ddaf1","sectionTitle":"Markdown にページタイトルが h1 として含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"beeb0c44","sectionTitle":"Markdown にステップが番号付きリストとして含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"33442db8","sectionTitle":"Markdown に see 参照がリンクとして含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"0840597d","sectionTitle":"Vitest のテストから仕様書を生成する場合"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"3446f5ba","sectionTitle":"Web レンダラーの場合"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"83a3cf45","sectionTitle":"ページごとの HTML ファイルが生成されること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"89d0db53","sectionTitle":"index.html が最初のページにリダイレクトすること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"ca003053","sectionTitle":"404.html がルートにリダイレクトすること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"449e7aec","sectionTitle":"HTML にページタイトルが含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"4ebf2840","sectionTitle":"HTML にサイドバーが含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"5a27be64","sectionTitle":"HTML にヘッダーのプロダクト名が含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"b990042a","sectionTitle":"HTML にフッターが含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"83108fe5","sectionTitle":"HTML に summary 属性が含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"52711ca9","sectionTitle":"HTML に why 属性がコールアウトとして含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"b389bde9","sectionTitle":"HTML に [spekta:step] コメントがステップとして含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"9efef88b","sectionTitle":"Markdown レンダラーの場合"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"77b1b520","sectionTitle":"ページごとの .md ファイルが生成されること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"acf68c9e","sectionTitle":"Markdown にページタイトルが h1 として含まれること"},{"pageId":"77a4697e","pageTitle":"spekta build","sectionId":"df0fd46f","sectionTitle":"Markdown に [spekta:step] コメントが番号付きリストとして含まれること"},{"pageId":"22ae4efc","pageTitle":"spekta doctor"},{"pageId":"22ae4efc","pageTitle":"spekta doctor","sectionId":"8a499d40","sectionTitle":"Node.js のバージョンを表示すること"},{"pageId":"22ae4efc","pageTitle":"spekta doctor","sectionId":"aba02cc5","sectionTitle":"プロジェクトディレクトリで実行した場合"},{"pageId":"22ae4efc","pageTitle":"spekta doctor","sectionId":"47be8be0","sectionTitle":".spekta.yml が見つかること"},{"pageId":"22ae4efc","pageTitle":"spekta doctor","sectionId":"02e18923","sectionTitle":"spec ディレクトリが見つかること"},{"pageId":"c77d4b37","pageTitle":"spekta watch"},{"pageId":"c77d4b37","pageTitle":"spekta watch","sectionId":"f154490b","sectionTitle":"サーバーが起動している場合"},{"pageId":"c77d4b37","pageTitle":"spekta watch","sectionId":"8e53ed24","sectionTitle":"HTTP でページを配信できること"},{"pageId":"c77d4b37","pageTitle":"spekta watch","sectionId":"df6d2ea0","sectionTitle":"SSE エンドポイントが利用可能であること"},{"pageId":"c77d4b37","pageTitle":"spekta watch","sectionId":"e731dfb5","sectionTitle":"spec ファイルを変更した場合"},{"pageId":"c77d4b37","pageTitle":"spekta watch","sectionId":"2a295463","sectionTitle":"自動でリビルドされること"}]</script>
     <script>(function() {
   // --- Mobile Menu ---
   var menuBtn = document.getElementById('menu-toggle');

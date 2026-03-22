@@ -5,6 +5,7 @@ import * as http from "node:http";
 import { spawn, type ChildProcess } from "node:child_process";
 import { vitestFixturesDir } from "./helpers.js";
 
+const context = describe;
 const binPath = path.resolve(import.meta.dirname ?? __dirname, "../packages/cli/bin/spekta.js");
 
 function waitFor(ms: number): Promise<void> {
@@ -15,12 +16,13 @@ function httpGet(url: string): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {
     http.get(url, (res) => {
       let body = "";
-      res.on("data", (chunk) => (body += chunk));
+      res.on("data", (chunk: string) => (body += chunk));
       res.on("end", () => resolve({ status: res.statusCode ?? 0, body }));
     }).on("error", reject);
   });
 }
 
+// [spekta:summary] ファイル変更を監視し、自動リビルドとライブリロードを提供するコマンド。
 describe("spekta watch", () => {
   const projectDir = vitestFixturesDir();
   let watchProcess: ChildProcess;
@@ -51,59 +53,69 @@ describe("spekta watch", () => {
     fs.rmSync(path.join(projectDir, ".spekta"), { recursive: true, force: true });
   });
 
-  it("HTTP サーバーが起動してページを配信できる", async () => {
-    const res = await httpGet(`http://localhost:${port}/`);
-    expect(res.status).toBe(200);
+  context("サーバーが起動している場合", () => {
+    it("HTTP でページを配信できること", async () => {
+      // [spekta:step] localhost にHTTPリクエストを送信する
+      const res = await httpGet(`http://localhost:${port}/`);
+      // [spekta:step] ステータスコード 200 が返る
+      expect(res.status).toBe(200);
+    });
+
+    it("SSE エンドポイントが利用可能であること", async () => {
+      // [spekta:step] /__reload エンドポイントにリクエストを送信する
+      const res = await new Promise<{ status: number; contentType: string }>((resolve, reject) => {
+        http.get(`http://localhost:${port}/__reload`, (res) => {
+          resolve({
+            status: res.statusCode ?? 0,
+            contentType: res.headers["content-type"] ?? "",
+          });
+          res.destroy();
+        }).on("error", reject);
+      });
+      // [spekta:step] ステータスコード 200 が返る
+      expect(res.status).toBe(200);
+      // [spekta:step] Content-Type が text/event-stream である
+      expect(res.contentType).toBe("text/event-stream");
+    });
   });
 
-  it("spec ファイルを変更するとリビルドされる", async () => {
-    const specFile = path.join(projectDir, "test/search.test.ts");
-    const original = fs.readFileSync(specFile, "utf-8");
+  context("spec ファイルを変更した場合", () => {
+    it("自動でリビルドされること", async () => {
+      const specFile = path.join(projectDir, "test/search.test.ts");
+      const original = fs.readFileSync(specFile, "utf-8");
 
-    fs.writeFileSync(specFile, original.replace(
-      "キーワードや条件で検索する機能。",
-      "キーワードや条件で検索する機能。【テスト更新】",
-    ));
+      // [spekta:step] テストファイルの内容を変更する
+      fs.writeFileSync(specFile, original.replace(
+        "キーワードや条件で検索する機能。",
+        "キーワードや条件で検索する機能。【テスト更新】",
+      ));
 
-    await new Promise<void>((resolve) => {
-      const handler = (data: Buffer) => {
-        if (data.toString().includes("Rebuild complete")) {
-          watchProcess.stdout?.off("data", handler);
-          resolve();
-        }
-      };
-      watchProcess.stdout?.on("data", handler);
-    });
-    await waitFor(500);
+      // [spekta:step] "Rebuild complete" の出力を待つ
+      await new Promise<void>((resolve) => {
+        const handler = (data: Buffer) => {
+          if (data.toString().includes("Rebuild complete")) {
+            watchProcess.stdout?.off("data", handler);
+            resolve();
+          }
+        };
+        watchProcess.stdout?.on("data", handler);
+      });
+      await waitFor(500);
 
-    // Find the search page and verify updated content
-    const webDir = path.join(projectDir, ".spekta/web");
-    const pages = fs.readdirSync(webDir).filter(e => {
-      const p = path.join(webDir, e);
-      return fs.statSync(p).isDirectory() && e !== "images";
-    });
-    let found = false;
-    for (const page of pages) {
-      const html = fs.readFileSync(path.join(webDir, page, "index.html"), "utf-8");
-      if (html.includes("【テスト更新】")) { found = true; break; }
-    }
-    expect(found).toBe(true);
+      // [spekta:step] 生成された HTML に変更内容が反映されている
+      const webDir = path.join(projectDir, ".spekta/web");
+      const pages = fs.readdirSync(webDir).filter((e: string) => {
+        const p = path.join(webDir, e);
+        return fs.statSync(p).isDirectory() && e !== "images";
+      });
+      let found = false;
+      for (const page of pages) {
+        const html = fs.readFileSync(path.join(webDir, page, "index.html"), "utf-8");
+        if (html.includes("【テスト更新】")) { found = true; break; }
+      }
+      expect(found).toBe(true);
 
-    // Restore
-    fs.writeFileSync(specFile, original);
-  }, 30000);
-
-  it("SSE エンドポイントが利用可能である", async () => {
-    const res = await new Promise<{ status: number; contentType: string }>((resolve, reject) => {
-      http.get(`http://localhost:${port}/__reload`, (res) => {
-        resolve({
-          status: res.statusCode ?? 0,
-          contentType: res.headers["content-type"] ?? "",
-        });
-        res.destroy();
-      }).on("error", reject);
-    });
-    expect(res.status).toBe(200);
-    expect(res.contentType).toBe("text/event-stream");
+      fs.writeFileSync(specFile, original);
+    }, 30000);
   });
 });
