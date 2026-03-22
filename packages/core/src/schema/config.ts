@@ -5,7 +5,7 @@ import { stringify as toYaml } from "yaml";
 // as はコアが使う予約フィールド。それ以外はプラグインが自由に定義する
 const pluginOptionsSchema = z.object({
   as: z.string().optional(),
-}).passthrough().nullable();
+}).loose().nullable();
 
 // パッケージ名のパターン
 const annotatorPackageName = z.string().regex(
