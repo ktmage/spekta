@@ -6,8 +6,8 @@
     "spekta": "./bin/spekta.js"
   },
   "exports": {
-    ".": "./dist/schema.js",
-    "./plugin": "./dist/plugin.js"
+    ".": "./dist/schema/schema.js",
+    "./plugin": "./dist/schema/plugin.js"
   },
   "files": ["bin", "dist"],
   "scripts": {

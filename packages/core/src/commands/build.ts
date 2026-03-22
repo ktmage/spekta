@@ -1,4 +1,4 @@
-import type { SpektaConfig } from "./types.js";
+import type { SpektaConfig } from "../schema/types.js";
 import { complete } from "./complete.js";
 import { render } from "./render.js";
 

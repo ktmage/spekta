@@ -1,5 +1,5 @@
 import * as fs from "node:fs";
-import type { Annotation } from "./plugin.js";
+import type { Annotation } from "../schema/plugin.js";
 
 const SPEKTA_PATTERN = /^\s*(?:\/\/|#)\s*\[spekta:\w+\]/;
 

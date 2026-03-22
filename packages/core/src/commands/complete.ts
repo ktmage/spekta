@@ -1,8 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { SpektaConfig } from "./types.js";
-import type { AnnotatorPlugin } from "./plugin.js";
-import { importAnnotations } from "./importer.js";
+import type { SpektaConfig } from "../schema/types.js";
+import type { AnnotatorPlugin } from "../schema/plugin.js";
+import { importAnnotations } from "../core/importer.js";
 
 /**
  * Run annotator plugins to auto-complete [spekta:*] comments in test files.
@@ -56,7 +56,7 @@ async function loadAnnotator(name: string): Promise<AnnotatorPlugin> {
   } catch {
     // Fallback: try relative path from core package (for monorepo development)
     const shortName = packageName.replace(/@\w+\/spekta-annotator-/, "");
-    const localPath = new URL(`../../annotators/${shortName}/src/index.ts`, import.meta.url).pathname;
+    const localPath = new URL(`../../../annotators/${shortName}/src/index.ts`, import.meta.url).pathname;
     try {
       const mod = await import(localPath);
       return mod.default as AnnotatorPlugin;

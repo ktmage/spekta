@@ -1,9 +1,9 @@
-import { loadConfig } from "./config.js";
-import { build } from "./build.js";
-import { render } from "./render.js";
-import { complete } from "./complete.js";
-import { watch } from "./watch.js";
-import { doctor } from "./doctor.js";
+import { loadConfig } from "./core/config.js";
+import { build } from "./commands/build.js";
+import { render } from "./commands/render.js";
+import { complete } from "./commands/complete.js";
+import { watch } from "./commands/watch.js";
+import { doctor } from "./commands/doctor.js";
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);

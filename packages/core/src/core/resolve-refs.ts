@@ -1,4 +1,4 @@
-import type { Page, Section, Attribute } from "./types.js";
+import type { Page, Section, Attribute } from "../schema/types.js";
 
 /**
  * Build a mapping from page title to page ID for all pages.

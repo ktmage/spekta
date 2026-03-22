@@ -1,8 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { SpektaConfig, BehaviorIR, SiteInfo } from "./types.js";
-import { parseFiles } from "./parser.js";
-import { resolveRefs, buildTitleToIdMap } from "./resolve-refs.js";
+import type { SpektaConfig, BehaviorIR, SiteInfo } from "../schema/types.js";
+import { parseFiles } from "../core/parser.js";
+import { resolveRefs, buildTitleToIdMap } from "../core/resolve-refs.js";
 
 export interface RenderOptions {
   mode: "production" | "development";
@@ -78,7 +78,7 @@ function collectFiles(dir: string, ext: string): string[] {
 async function runExporters(config: SpektaConfig, ir: BehaviorIR, options: RenderOptions): Promise<void> {
   if (config.renderer.web) {
     const webPath = path.resolve(config.renderer.web.path ?? ".spekta/web");
-    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../exporters/web/dist/render.js");
+    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../../exporters/web/dist/render.js");
     try {
       const { renderWeb } = await import(exporterDir);
       const siteInfo: SiteInfo = {
@@ -96,7 +96,7 @@ async function runExporters(config: SpektaConfig, ir: BehaviorIR, options: Rende
 
   if (config.renderer.markdown) {
     const mdPath = path.resolve(config.renderer.markdown.path ?? ".spekta/markdown");
-    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../exporters/markdown/dist/render.js");
+    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../../exporters/markdown/dist/render.js");
     try {
       const { renderMarkdown } = await import(exporterDir);
       renderMarkdown(ir, mdPath);
@@ -108,7 +108,7 @@ async function runExporters(config: SpektaConfig, ir: BehaviorIR, options: Rende
 
   if (config.renderer.pdf) {
     const pdfPath = path.resolve(config.renderer.pdf.path ?? ".spekta/pdf");
-    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../exporters/pdf/dist/render.js");
+    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../../exporters/pdf/dist/render.js");
     try {
       const { renderPdf } = await import(exporterDir);
       renderPdf(ir, pdfPath);

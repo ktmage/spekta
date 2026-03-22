@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as http from "node:http";
-import type { SpektaConfig } from "./types.js";
+import type { SpektaConfig } from "../schema/types.js";
 import { build } from "./build.js";
 
 const DEFAULT_PORT = 4321;
