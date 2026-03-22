@@ -161,17 +161,9 @@ commands（任意）でカスタムコマンドを提供できる。
 
 `docs/plugin-readme-template.md` のテンプレートに従って作成する。
 
-### 8. ルートの workspaces に追加する
+### 8. 独立リポジトリとして公開する
 
-`package.json` の workspaces に新しいパッケージのパスを追加する。
-
-### 9. サブモジュール化する（任意）
-
-GitHub リポジトリを作成し、サブモジュールとして追加する。
-
-```bash
-git submodule add https://github.com/{scope}/spekta-{annotator|exporter}-{name}.git packages/{annotators|exporters}/{name}
-```
+プラグインは独立した npm パッケージとして公開する。Spekta のリポジトリに含める必要はない。
 
 ## 参考ドキュメント
 
