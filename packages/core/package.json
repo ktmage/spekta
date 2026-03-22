@@ -7,7 +7,8 @@
   },
   "exports": {
     ".": "./dist/schema/schema.js",
-    "./plugin": "./dist/schema/plugin.js"
+    "./plugin": "./dist/schema/plugin.js",
+    "./commands": "./dist/commands/exports.js"
   },
   "files": ["bin", "dist"],
   "scripts": {

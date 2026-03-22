@@ -22,16 +22,17 @@ function httpGet(url: string): Promise<{ status: number; body: string }> {
   });
 }
 
-// [spekta:summary] ファイル変更を監視し、自動リビルドとライブリロードを提供するコマンド。
-describe("spekta watch", () => {
+// [spekta:page] spekta web:dev
+// [spekta:summary] Web Exporter の dev サーバー。ファイル変更を監視し、自動リビルドとライブリロードを提供する。
+describe("spekta web:dev", () => {
   const projectDir = vitestFixturesDir();
-  let watchProcess: ChildProcess;
+  let devProcess: ChildProcess;
   const port = 4321;
 
   beforeAll(async () => {
     fs.rmSync(path.join(projectDir, ".spekta"), { recursive: true, force: true });
 
-    watchProcess = spawn("node", [binPath, "watch"], {
+    devProcess = spawn("node", [binPath, "web:dev"], {
       cwd: projectDir,
       stdio: ["pipe", "pipe", "pipe"],
     });
@@ -39,21 +40,23 @@ describe("spekta watch", () => {
     await new Promise<void>((resolve) => {
       const handler = (data: Buffer) => {
         if (data.toString().includes("localhost")) {
-          watchProcess.stdout?.off("data", handler);
+          devProcess.stdout?.off("data", handler);
           resolve();
         }
       };
-      watchProcess.stdout?.on("data", handler);
+      devProcess.stdout?.on("data", handler);
     });
     await waitFor(1000);
   }, 30000);
 
   afterAll(() => {
-    watchProcess?.kill();
+    devProcess?.kill();
     fs.rmSync(path.join(projectDir, ".spekta"), { recursive: true, force: true });
   });
 
+  // [spekta:section] サーバーが起動している場合
   context("サーバーが起動している場合", () => {
+    // [spekta:section] HTTP でページを配信できること
     it("HTTP でページを配信できること", async () => {
       // [spekta:step] localhost にHTTPリクエストを送信する
       const res = await httpGet(`http://localhost:${port}/`);
@@ -61,6 +64,7 @@ describe("spekta watch", () => {
       expect(res.status).toBe(200);
     });
 
+    // [spekta:section] SSE エンドポイントが利用可能であること
     it("SSE エンドポイントが利用可能であること", async () => {
       // [spekta:step] /__reload エンドポイントにリクエストを送信する
       const res = await new Promise<{ status: number; contentType: string }>((resolve, reject) => {
@@ -79,7 +83,9 @@ describe("spekta watch", () => {
     });
   });
 
-  context("spec ファイルを変更した場合", () => {
+  // [spekta:section] テストファイルを変更した場合
+  context("テストファイルを変更した場合", () => {
+    // [spekta:section] 自動でリビルドされること
     it("自動でリビルドされること", async () => {
       const specFile = path.join(projectDir, "test/search.test.ts");
       const original = fs.readFileSync(specFile, "utf-8");
@@ -94,19 +100,19 @@ describe("spekta watch", () => {
       await new Promise<void>((resolve) => {
         const handler = (data: Buffer) => {
           if (data.toString().includes("Rebuild complete")) {
-            watchProcess.stdout?.off("data", handler);
+            devProcess.stdout?.off("data", handler);
             resolve();
           }
         };
-        watchProcess.stdout?.on("data", handler);
+        devProcess.stdout?.on("data", handler);
       });
       await waitFor(500);
 
       // [spekta:step] 生成された HTML に変更内容が反映されている
       const webDir = path.join(projectDir, ".spekta/web");
-      const pages = fs.readdirSync(webDir).filter((e: string) => {
-        const p = path.join(webDir, e);
-        return fs.statSync(p).isDirectory() && e !== "images";
+      const pages = fs.readdirSync(webDir).filter((entry: string) => {
+        const fullPath = path.join(webDir, entry);
+        return fs.statSync(fullPath).isDirectory() && entry !== "images";
       });
       let found = false;
       for (const page of pages) {

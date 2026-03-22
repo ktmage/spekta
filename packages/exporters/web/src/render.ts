@@ -1002,6 +1002,12 @@ const plugin = {
     };
     renderWeb(ir, siteInfo, outputDir);
   },
+  commands: {
+    async dev(config: any): Promise<void> {
+      const { dev } = await import("./dev.js");
+      await dev(config);
+    },
+  },
 };
 
 export default plugin;

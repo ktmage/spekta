@@ -1,13 +1,20 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { SpektaConfig } from "../schema/types.js";
-import { build } from "./build.js";
-import { startDevServer } from "../core/dev-server.js";
+import { startDevServer } from "./dev-server.js";
+
+interface SpektaConfig {
+  target_dir: string;
+  include?: string[];
+  exporter?: Record<string, Record<string, unknown> | null>;
+}
 
 const DEFAULT_PORT = 4321;
 const DEBOUNCE_MS = 500;
 
-export async function watch(config: SpektaConfig): Promise<void> {
+export async function dev(config: SpektaConfig): Promise<void> {
+  // Dynamic import to avoid circular dependency at load time
+  const { build } = await import("@ktmage/spekta/commands");
+
   const targetDir = path.resolve(config.target_dir);
   const outputDir = findOutputDir(config);
 
@@ -55,9 +62,6 @@ export async function watch(config: SpektaConfig): Promise<void> {
   console.log("Watch mode active. Press Ctrl+C to stop.");
 }
 
-/**
- * Find the first exporter's output directory for dev server.
- */
 function findOutputDir(config: SpektaConfig): string {
   if (config.exporter) {
     for (const exporterConfig of Object.values(config.exporter)) {

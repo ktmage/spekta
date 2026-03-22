@@ -1,4 +1,5 @@
 import type { IR } from "./schema.js";
+import type { SpektaConfig } from "./types.js";
 
 // --- Annotator Plugin ---
 
@@ -20,4 +21,5 @@ export interface ExporterPlugin {
   name: string;
   defaultOutputDir: string;
   export(ir: IR, config: Record<string, unknown>, outputDir: string): void;
+  commands?: Record<string, (config: SpektaConfig) => Promise<void>>;
 }
