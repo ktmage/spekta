@@ -1,7 +1,6 @@
 import * as path from "node:path";
 import type { SpektaConfig, BehaviorIR } from "../schema/types.js";
 import { parseFiles } from "../core/parser.js";
-import { resolveRefs } from "../core/resolve-refs.js";
 import { collectFiles, collectAllFiles } from "../core/files.js";
 import { loadExporterPlugin } from "../core/load-plugin.js";
 
@@ -29,7 +28,7 @@ export async function render(config: SpektaConfig): Promise<void> {
 
   console.log(`Parsing ${filteredPaths.length} test file(s)...`);
 
-  const { pages, fileToPages } = parseFiles(filteredPaths);
+  const { pages } = parseFiles(filteredPaths);
 
   if (pages.length === 0) {
     console.warn("No [spekta:*] annotations found. Run 'spekta complete' first or add comments manually.");
@@ -37,8 +36,6 @@ export async function render(config: SpektaConfig): Promise<void> {
   }
 
   console.log(`Found ${pages.length} page(s).`);
-
-  resolveRefs(pages);
 
   const ir: BehaviorIR = { version: "1.0.0", pages };
 

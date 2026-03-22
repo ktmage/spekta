@@ -150,7 +150,7 @@ function entryToNode(entry: CommentEntry): Node | null {
   switch (entry.type) {
     case "summary": return { type: "summary", text: entry.text };
     case "why": return { type: "why", text: entry.text };
-    case "see": return { type: "see", ref: entry.text };
+    case "see": return { type: "see", ref: generateId(entry.text) };
     case "step": return { type: "step", text: entry.text };
     case "image": return { type: "image", path: entry.text };
     case "graph": return { type: "graph", text: entry.text };

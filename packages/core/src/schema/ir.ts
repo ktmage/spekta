@@ -17,7 +17,7 @@ const whyNodeSchema = z.object({
 
 const seeNodeSchema = z.object({
   type: z.literal("see"),
-  ref: z.string(),
+  ref: sha256Id,
 });
 
 const stepNodeSchema = z.object({
