@@ -22,7 +22,7 @@ export function renderSection(
   const seeNodes = filterNodes(sectionNode.children, "see");
   const imageNode = findNode(sectionNode.children, "image");
   const graphNode = findNode(sectionNode.children, "graph");
-  const stepNodes = filterNodes(sectionNode.children, "step");
+  const stepsNode = findNode(sectionNode.children, "steps");
   const childSections = getSections(sectionNode.children);
 
   const parts: string[] = [];
@@ -75,10 +75,10 @@ export function renderSection(
     parts.push(`  </div>`);
   }
 
-  if (stepNodes.length > 0) {
+  if (stepsNode) {
     parts.push(`  <ol class="spec-example__steps">`);
-    for (const stepNode of stepNodes) {
-      parts.push(`    <li>${escapeHtml(stepNode.text)}</li>`);
+    for (const stepText of stepsNode.items) {
+      parts.push(`    <li>${escapeHtml(stepText)}</li>`);
     }
     parts.push(`  </ol>`);
   }

@@ -81,8 +81,11 @@ function renderNodes(
         lines.push("```");
         lines.push("");
         break;
-      case "step":
-        // Steps are collected and rendered as numbered list per section
+      case "steps":
+        for (let stepIndex = 0; stepIndex < node.items.length; stepIndex++) {
+          lines.push(`${stepIndex + 1}. ${node.items[stepIndex]}`);
+        }
+        lines.push("");
         break;
       case "section":
         renderSectionNode(lines, node, headingDepth, pageById, imagePaths);
@@ -105,24 +108,12 @@ function renderSectionNode(
   lines.push("");
 
   if (sectionNode.children) {
-    // Render non-step, non-section nodes first
-    const nonStepNodes = sectionNode.children.filter(
-      (node) => node.type !== "step" && node.type !== "section"
+    // Render non-section nodes first, then child sections
+    const nonSectionNodes = sectionNode.children.filter(
+      (node) => node.type !== "section"
     );
-    renderNodes(lines, nonStepNodes, depth + 1, pageById, imagePaths);
+    renderNodes(lines, nonSectionNodes, depth + 1, pageById, imagePaths);
 
-    // Render steps as numbered list
-    const stepNodes = sectionNode.children.filter(
-      (node): node is Extract<Node, { type: "step" }> => node.type === "step"
-    );
-    if (stepNodes.length > 0) {
-      for (let stepIndex = 0; stepIndex < stepNodes.length; stepIndex++) {
-        lines.push(`${stepIndex + 1}. ${stepNodes[stepIndex].text}`);
-      }
-      lines.push("");
-    }
-
-    // Render child sections
     const childSections = sectionNode.children.filter(
       (node): node is SectionNode => node.type === "section"
     );

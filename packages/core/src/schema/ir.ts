@@ -23,10 +23,10 @@ const seeNodeSchema = z.object({
   ref: sha256Id,
 });
 
-const stepNodeSchema = z.object({
-  type: z.literal("step"),
+const stepsNodeSchema = z.object({
+  type: z.literal("steps"),
   id: sha256Id,
-  text: z.string(),
+  items: z.array(z.string()),
 });
 
 const imageNodeSchema = z.object({
@@ -52,7 +52,7 @@ export interface SectionNodeInput {
 type LeafNode = z.infer<typeof summaryNodeSchema>
   | z.infer<typeof whyNodeSchema>
   | z.infer<typeof seeNodeSchema>
-  | z.infer<typeof stepNodeSchema>
+  | z.infer<typeof stepsNodeSchema>
   | z.infer<typeof imageNodeSchema>
   | z.infer<typeof graphNodeSchema>;
 
@@ -69,7 +69,7 @@ export const nodeSchema: z.ZodType<NodeInput> = z.union([
   summaryNodeSchema,
   whyNodeSchema,
   seeNodeSchema,
-  stepNodeSchema,
+  stepsNodeSchema,
   imageNodeSchema,
   graphNodeSchema,
   sectionNodeSchema,
@@ -98,7 +98,7 @@ export type IR = z.infer<typeof irSchema>;
 export type SummaryNode = z.infer<typeof summaryNodeSchema>;
 export type WhyNode = z.infer<typeof whyNodeSchema>;
 export type SeeNode = z.infer<typeof seeNodeSchema>;
-export type StepNode = z.infer<typeof stepNodeSchema>;
+export type StepsNode = z.infer<typeof stepsNodeSchema>;
 export type ImageNode = z.infer<typeof imageNodeSchema>;
 export type GraphNode = z.infer<typeof graphNodeSchema>;
 

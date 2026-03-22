@@ -67,9 +67,40 @@ function buildPages(entries: CommentEntry[]): Page[] {
   let currentPageTitle = "";
   const sectionStack: { sectionNode: SectionNode; indent: number; title: string }[] = [];
   let pendingNodes: Node[] = [];
+  let pendingSteps: string[] = [];
+
+  function flushSteps(): void {
+    if (pendingSteps.length === 0) return;
+    const parentPath = getCurrentPath();
+    const stepsNode: Node = {
+      type: "steps",
+      id: generateId(`${parentPath}/steps`),
+      items: [...pendingSteps],
+    };
+    attachNode(stepsNode);
+    pendingSteps = [];
+  }
+
+  function getCurrentPath(): string {
+    return [currentPageTitle, ...sectionStack.map(s => s.title)].join("/");
+  }
+
+  function attachNode(node: Node): void {
+    if (sectionStack.length > 0) {
+      const currentSection = sectionStack[sectionStack.length - 1].sectionNode;
+      if (!currentSection.children) currentSection.children = [];
+      currentSection.children.push(node);
+    } else if (currentPage) {
+      if (!currentPage.children) currentPage.children = [];
+      currentPage.children.push(node);
+    } else {
+      pendingNodes.push(node);
+    }
+  }
 
   for (const entry of entries) {
     if (entry.type === "page") {
+      flushSteps();
       currentPageTitle = entry.text;
       currentPage = {
         id: generateId(currentPageTitle),
@@ -86,6 +117,8 @@ function buildPages(entries: CommentEntry[]): Page[] {
     }
 
     if (entry.type === "section") {
+      flushSteps();
+
       while (sectionStack.length > 0 && sectionStack[sectionStack.length - 1].indent >= entry.indent) {
         sectionStack.pop();
       }
@@ -102,21 +135,20 @@ function buildPages(entries: CommentEntry[]): Page[] {
         title: entry.text,
       };
 
-      if (sectionStack.length > 0) {
-        const parentSection = sectionStack[sectionStack.length - 1].sectionNode;
-        if (!parentSection.children) parentSection.children = [];
-        parentSection.children.push(sectionNode);
-      } else if (currentPage) {
-        if (!currentPage.children) currentPage.children = [];
-        currentPage.children.push(sectionNode);
-      }
-
+      attachNode(sectionNode);
       sectionStack.push({ sectionNode, indent: entry.indent, title: entry.text });
       continue;
     }
 
-    // Convert entry to Node
-    const node = entryToNode(entry, currentPageTitle);
+    if (entry.type === "step") {
+      pendingSteps.push(entry.text);
+      continue;
+    }
+
+    // Other nodes
+    flushSteps();
+    const parentPath = getCurrentPath();
+    const node = entryToNode(entry, parentPath);
     if (!node) continue;
 
     // Look ahead: if a [spekta:page] follows, this node belongs to the next page
@@ -130,38 +162,24 @@ function buildPages(entries: CommentEntry[]): Page[] {
       continue;
     }
 
-    // Attach to most recent section, or page
-    if (sectionStack.length > 0) {
-      const currentSection = sectionStack[sectionStack.length - 1].sectionNode;
-      if (!currentSection.children) currentSection.children = [];
-      currentSection.children.push(node);
-    } else if (currentPage) {
-      if (!currentPage.children) currentPage.children = [];
-      currentPage.children.push(node);
-    } else {
-      pendingNodes.push(node);
-    }
+    attachNode(node);
   }
 
+  flushSteps();
   return pages;
 }
 
-function entryToNode(entry: CommentEntry, pageTitle: string): Node | null {
-  const nodeId = generateId(`${pageTitle}/${entry.type}/${entry.line}`);
+function entryToNode(entry: CommentEntry, parentPath: string): Node | null {
   switch (entry.type) {
-    case "summary": return { type: "summary", id: nodeId, text: entry.text };
-    case "why": return { type: "why", id: nodeId, text: entry.text };
-    case "see": return { type: "see", id: nodeId, ref: generateId(entry.text) };
-    case "step": return { type: "step", id: nodeId, text: entry.text };
-    case "image": return { type: "image", id: nodeId, path: entry.text };
-    case "graph": return { type: "graph", id: nodeId, text: entry.text };
+    case "summary": return { type: "summary", id: generateId(`${parentPath}/summary/${entry.text}`), text: entry.text };
+    case "why": return { type: "why", id: generateId(`${parentPath}/why/${entry.text}`), text: entry.text };
+    case "see": return { type: "see", id: generateId(`${parentPath}/see/${entry.text}`), ref: generateId(entry.text) };
+    case "image": return { type: "image", id: generateId(`${parentPath}/image/${entry.text}`), path: entry.text };
+    case "graph": return { type: "graph", id: generateId(`${parentPath}/graph/${entry.text}`), text: entry.text };
     default: return null;
   }
 }
 
-/**
- * Parse multiple files, merge pages with the same [spekta:page], and collect results.
- */
 export function parseFiles(filePaths: string[]): { pages: Page[]; fileToPages: Map<string, Page[]> } {
   const allPages: Page[] = [];
   const fileToPages = new Map<string, Page[]>();
@@ -211,7 +229,6 @@ function mergeNodeInto(existingChildren: Node[], newNode: Node): void {
     return;
   }
 
-  // Merge children of matching sections
   if (newNode.children) {
     if (!existingSection.children) existingSection.children = [];
     for (const childNode of newNode.children) {
