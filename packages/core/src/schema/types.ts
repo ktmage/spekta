@@ -7,5 +7,4 @@ export type {
   IR as BehaviorIR,
 } from "./ir.js";
 
-// Re-export config type from config-schema.ts
-export type { SpektaConfig } from "./config-schema.js";
+export type { SpektaConfig } from "./config.js";

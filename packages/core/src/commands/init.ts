@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { generateConfigTemplate } from "../schema/config-schema.js";
+import { generateConfigTemplate } from "../schema/config.js";
 
 export function init(): void {
   const configPath = path.resolve(".spekta.yml");
