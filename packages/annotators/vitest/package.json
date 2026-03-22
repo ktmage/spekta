@@ -1,0 +1,17 @@
+{
+  "name": "@spekta/annotator-vitest",
+  "version": "0.2.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "spekta": "workspace:*",
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  }
+}

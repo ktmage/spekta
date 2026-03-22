@@ -7,6 +7,17 @@
         "vitest": "^4.1.0",
       },
     },
+    "packages/annotators/vitest": {
+      "name": "@spekta/annotator-vitest",
+      "version": "0.2.0",
+      "dependencies": {
+        "spekta": "workspace:*",
+        "typescript": "^5.0.0",
+      },
+      "devDependencies": {
+        "@types/node": "^22.0.0",
+      },
+    },
     "packages/core": {
       "name": "spekta",
       "version": "0.2.0",
@@ -89,6 +100,8 @@
     "@rolldown/binding-win32-x64-msvc": ["@rolldown/binding-win32-x64-msvc@1.0.0-rc.10", "", { "os": "win32", "cpu": "x64" }, "sha512-PYxKHMVHOb5NJuDL53vBUl1VwUjymDcYI6rzpIni0C9+9mTiJedvUxSk7/RPp7OOAm3v+EjgMu9bIy3N6b408w=="],
 
     "@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.0-rc.10", "", {}, "sha512-UkVDEFk1w3mveXeKgaTuYfKWtPbvgck1dT8TUG3bnccrH0XtLTuAyfCoks4Q/M5ZGToSVJTIQYCzy2g/atAOeg=="],
+
+    "@spekta/annotator-vitest": ["@spekta/annotator-vitest@workspace:packages/annotators/vitest"],
 
     "@spekta/exporter-markdown": ["@spekta/exporter-markdown@workspace:packages/exporters/markdown"],
 

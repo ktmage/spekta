@@ -6,7 +6,8 @@
     "spekta": "./bin/spekta.js"
   },
   "exports": {
-    ".": "./src/schema.ts"
+    ".": "./src/schema.ts",
+    "./plugin": "./src/plugin.ts"
   },
   "scripts": {
     "build": "tsc",

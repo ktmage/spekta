@@ -3,6 +3,7 @@
   "type": "module",
   "workspaces": [
     "packages/core",
+    "packages/annotators/*",
     "packages/exporters/*"
   ],
   "scripts": {
