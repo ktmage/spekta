@@ -10,13 +10,18 @@
 
 ## インストール
 
+> npm パッケージは未公開です。現在はモノレポからローカルで利用できます。
+
 ```bash
-npm install @ktmage/spekta
+git clone --recurse-submodules https://github.com/ktmage/spekta.git
+cd spekta
+bun install
 ```
 
-Exporter プラグインも合わせてインストールする。
+npm 公開後は以下でインストールできるようになる予定です。
 
 ```bash
+npm install @ktmage/spekta
 npm install @ktmage/spekta-exporter-web
 npm install @ktmage/spekta-exporter-markdown
 ```
