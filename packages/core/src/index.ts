@@ -4,6 +4,7 @@ import { render } from "./commands/render.js";
 import { annotate } from "./commands/annotate.js";
 import { doctor } from "./commands/doctor.js";
 import { init } from "./commands/init.js";
+import { check } from "./commands/check.js";
 import { resolvePluginCommand } from "./core/resolve-plugin-command.js";
 
 async function main(): Promise<void> {
@@ -22,6 +23,9 @@ async function main(): Promise<void> {
       return;
     case "doctor":
       doctor();
+      return;
+    case "check":
+      check(loadConfig());
       return;
   }
 
@@ -62,6 +66,7 @@ Commands:
   build              Run annotators, parse test files, and generate documentation
   render             Parse test files and generate documentation (skip annotators)
   annotate           Run annotator plugins to add [spekta:*] comments
+  check              Validate [spekta:*] annotations in test files
   doctor             Check environment and dependencies
   {exporter}:{command} Run an exporter command (e.g. web:dev)`);
 }
