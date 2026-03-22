@@ -1,8 +1,10 @@
-import * as fs from "node:fs";
 import * as path from "node:path";
 import type { SpektaConfig, BehaviorIR, SiteInfo } from "../schema/types.js";
 import { parseFiles } from "../core/parser.js";
 import { resolveRefs, buildTitleToIdMap } from "../core/resolve-refs.js";
+import { collectFiles } from "../core/files.js";
+
+const TARGET_EXTENSIONS = [".test.ts", ".spec.ts", "_spec.rb"];
 
 export interface RenderOptions {
   mode: "production" | "development";
@@ -17,7 +19,8 @@ export interface RenderOptions {
  *   3. Exporter writes IR → Document
  */
 export async function render(config: SpektaConfig, options: RenderOptions): Promise<void> {
-  const filePaths = collectTargetFiles(config);
+  const targetDir = path.resolve(config.target_dir);
+  const filePaths = collectFiles(targetDir, TARGET_EXTENSIONS);
 
   if (filePaths.length === 0) {
     console.warn("No test files found. Check your configuration.");
@@ -43,36 +46,6 @@ export async function render(config: SpektaConfig, options: RenderOptions): Prom
   await runExporters(config, ir, options);
 
   console.log("Render complete.");
-}
-
-function collectTargetFiles(config: SpektaConfig): string[] {
-  const targetDir = path.resolve(config.target_dir);
-  const extensions = [".test.ts", ".spec.ts", "_spec.rb"];
-  const exclude = config.analyzer?.vitest?.exclude ?? [];
-
-  const files: string[] = [];
-  for (const ext of extensions) {
-    files.push(...collectFiles(targetDir, ext));
-  }
-
-  return files.filter(f => !exclude.some(pattern => f.includes(pattern)));
-}
-
-function collectFiles(dir: string, ext: string): string[] {
-  if (!fs.existsSync(dir)) return [];
-  const files: string[] = [];
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory() && entry.name !== "node_modules") {
-      files.push(...collectFiles(fullPath, ext));
-    } else if (entry.isFile() && entry.name.endsWith(ext)) {
-      files.push(fullPath);
-    }
-  }
-
-  return files.sort();
 }
 
 async function runExporters(config: SpektaConfig, ir: BehaviorIR, options: RenderOptions): Promise<void> {

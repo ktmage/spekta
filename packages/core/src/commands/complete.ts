@@ -3,6 +3,7 @@ import * as path from "node:path";
 import type { SpektaConfig } from "../schema/types.js";
 import type { AnnotatorPlugin } from "../schema/plugin.js";
 import { importAnnotations } from "../core/importer.js";
+import { collectFiles } from "../core/files.js";
 
 /**
  * Run annotator plugins to auto-complete [spekta:*] comments in test files.
@@ -17,7 +18,6 @@ export async function complete(config: SpektaConfig): Promise<void> {
     return;
   }
 
-  
   for (const name of annotatorNames) {
     try {
       const annotatorPlugin = await loadAnnotator(name);
@@ -40,7 +40,6 @@ export async function complete(config: SpektaConfig): Promise<void> {
 }
 
 function getAnnotatorNames(config: SpektaConfig): string[] {
-  // Read from annotator section in config
   const raw = config as unknown as Record<string, unknown>;
   const annotator = raw.annotator as Record<string, unknown> | undefined;
   if (!annotator) return [];
@@ -49,38 +48,12 @@ function getAnnotatorNames(config: SpektaConfig): string[] {
 
 async function loadAnnotator(name: string): Promise<AnnotatorPlugin> {
   try {
-    // Resolve from CWD so plugins installed in the project's node_modules are found
     const { createRequire } = await import("node:module");
-    const require = createRequire(path.resolve("package.json"));
-    const resolved = require.resolve(name);
+    const localRequire = createRequire(path.resolve("package.json"));
+    const resolved = localRequire.resolve(name);
     const annotatorModule = await import(resolved);
     return annotatorModule.default as AnnotatorPlugin;
   } catch {
     throw new Error(`Annotator plugin "${name}" not found. Install it to your project.`);
   }
-}
-
-function collectFiles(dir: string, patterns: string[]): string[] {
-  if (!fs.existsSync(dir)) return [];
-
-  const files: string[] = [];
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory() && entry.name !== "node_modules") {
-      files.push(...collectFiles(fullPath, patterns));
-    } else if (entry.isFile() && matchesPatterns(entry.name, patterns)) {
-      files.push(fullPath);
-    }
-  }
-
-  return files.sort();
-}
-
-function matchesPatterns(fileName: string, patterns: string[]): boolean {
-  return patterns.some(pattern => {
-    const ext = pattern.replace("*", "");
-    return fileName.endsWith(ext);
-  });
 }
