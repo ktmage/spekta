@@ -1,3 +1,4 @@
+(function() {
   // --- Mobile Menu ---
   var menuBtn = document.getElementById('menu-toggle');
   var sidebar = document.getElementById('sidebar');
@@ -103,4 +104,4 @@
       }
     });
   }
-})();`;
+})();

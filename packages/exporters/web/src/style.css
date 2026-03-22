@@ -1,3 +1,4 @@
+/* ============================================================
    Spekta - Product Specification Viewer
    ============================================================ */
 
@@ -337,4 +338,4 @@ details[open] > summary .sidebar__toggle { transform: rotate(90deg); }
   .main-content { margin-left: 0; }
   .spec-content { padding: 0; max-width: 100%; }
   .spec-callout--why, .spec-graph { break-inside: avoid; }
-}`;
+}
