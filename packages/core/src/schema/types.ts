@@ -1,4 +1,4 @@
-// Re-export all types from schema.ts
+// Re-export IR types from schema.ts
 export type {
   Step,
   Attribute,
@@ -7,12 +7,5 @@ export type {
   IR as BehaviorIR,
 } from "./schema.js";
 
-// Config types (not part of IR schema)
-
-export interface SpektaConfig {
-  target_dir: string;
-  include?: string[];
-  exclude?: string[];
-  annotator?: Record<string, Record<string, unknown> | null>;
-  exporter?: Record<string, Record<string, unknown> | null>;
-}
+// Re-export config type from config-schema.ts
+export type { SpektaConfig } from "./config-schema.js";

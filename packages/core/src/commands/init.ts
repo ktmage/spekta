@@ -1,19 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-
-const TEMPLATE = `# .spekta.yml
-# target_dir: test/
-# include:
-#   - ".test.ts"
-
-# annotator:
-#   "@ktmage/spekta-annotator-vitest":
-
-# exporter:
-#   "@ktmage/spekta-exporter-web":
-#     name: "My Project"
-#   "@ktmage/spekta-exporter-markdown":
-`;
+import { generateConfigTemplate } from "../schema/config-schema.js";
 
 export function init(): void {
   const configPath = path.resolve(".spekta.yml");
@@ -23,7 +10,7 @@ export function init(): void {
     process.exit(1);
   }
 
-  fs.writeFileSync(configPath, TEMPLATE);
+  fs.writeFileSync(configPath, generateConfigTemplate());
   fs.mkdirSync(path.resolve(".spekta"), { recursive: true });
 
   console.log("Created .spekta.yml and .spekta/ directory.");
