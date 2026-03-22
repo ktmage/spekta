@@ -8,7 +8,7 @@ const DEBOUNCE_MS = 500;
 
 export async function dev(config: SpektaConfig): Promise<void> {
   // Dynamic import to avoid circular dependency at load time
-  const { build } = await import("@ktmage/spekta/commands");
+  const { build, render } = await import("@ktmage/spekta/commands");
 
   const targetDir = path.resolve(config.target_dir);
   const outputDir = findOutputDir(config);
@@ -31,7 +31,7 @@ export async function dev(config: SpektaConfig): Promise<void> {
     debounceTimer = setTimeout(async () => {
       console.log(`\nFile changed${filename ? `: ${filename}` : ""}. Rebuilding...`);
       try {
-        await build(config);
+        await render(config);
         devServer.notifyReload();
         console.log("Rebuild complete.");
       } catch (buildError) {
