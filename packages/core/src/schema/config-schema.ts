@@ -12,7 +12,7 @@ export const spektaConfigSchema = z.object({
   target_dir: z.string(),
   include:    z.array(z.string()).optional(),
   exclude:    z.array(z.string()).optional(),
-  annotator:  pluginMapSchema,
+  annotator:  pluginMapSchema.optional(),
   exporter:   pluginMapSchema,
 });
 
