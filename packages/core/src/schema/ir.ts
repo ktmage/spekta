@@ -2,9 +2,7 @@ import { z } from "zod/v4";
 
 // --- Step ---
 export const stepSchema = z.object({
-  action: z.enum(["visit", "click_on", "fill_in", "select", "expect", "other"]),
-  target: z.string(),
-  value: z.string().optional(),
+  text: z.string(),
 });
 
 // --- Attribute ---

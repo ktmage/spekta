@@ -2,22 +2,6 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import type { IR, Page, Section, Attribute, Step } from "@ktmage/spekta";
 
-function stepToPhrase(step: Step): string {
-  switch (step.action) {
-    case "visit": return "ページを開く";
-    case "click_on": return `「${step.target}」をクリック`;
-    case "fill_in":
-      return step.value !== undefined && step.value !== ""
-        ? `「${step.target}」に「${step.value}」と入力`
-        : `「${step.target}」を空にする`;
-    case "select": return `「${step.target}」から「${step.value}」を選択`;
-    case "expect":
-      if (step.target.startsWith("not: ")) return `「${step.target.slice(5)}」が表示されない`;
-      return `「${step.target}」が表示される`;
-    default: return step.target;
-  }
-}
-
 export function renderMarkdown(ir: IR, outputPath: string): void {
   fs.mkdirSync(outputPath, { recursive: true });
 
@@ -149,8 +133,7 @@ function renderAttributes(
 
 function renderSteps(lines: string[], steps: Step[]): void {
   for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
-    const phrase = stepToPhrase(steps[stepIndex]);
-    lines.push(`${stepIndex + 1}. ${phrase}`);
+    lines.push(`${stepIndex + 1}. ${steps[stepIndex].text}`);
   }
   lines.push("");
 }

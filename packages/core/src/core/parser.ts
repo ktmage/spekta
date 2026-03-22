@@ -122,7 +122,7 @@ function buildPages(entries: CommentEntry[]): Page[] {
     }
 
     if (entry.type === "step") {
-      const step: Step = { action: "other", target: entry.text };
+      const step: Step = { text: entry.text };
       if (sectionStack.length > 0) {
         const currentSection = sectionStack[sectionStack.length - 1].section;
         if (!currentSection.steps) currentSection.steps = [];

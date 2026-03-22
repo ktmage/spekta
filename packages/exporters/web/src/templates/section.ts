@@ -2,7 +2,6 @@ import * as path from "node:path";
 import type { Page, Section } from "@ktmage/spekta";
 import { escapeHtml } from "../html.js";
 import { pageUrlPath } from "../anchor.js";
-import { stepToPhrase } from "../step-phrase.js";
 
 export function renderSection(
   section: Section,
@@ -76,7 +75,7 @@ export function renderSection(
   if (section.steps && section.steps.length > 0) {
     parts.push(`  <ol class="spec-example__steps">`);
     for (const step of section.steps) {
-      parts.push(`    <li>${escapeHtml(stepToPhrase(step))}</li>`);
+      parts.push(`    <li>${escapeHtml(step.text)}</li>`);
     }
     parts.push(`  </ol>`);
   }
