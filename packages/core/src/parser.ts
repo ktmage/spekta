@@ -2,31 +2,31 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { execFileSync } from "node:child_process";
 import type { Page, SpektaConfig } from "./types.js";
-import { analyzeFile as analyzeVitestFile } from "./vitest-analyze.js";
+import { parseFile as parseTypescriptFile } from "./parsers/typescript.js";
 
 /**
- * Analyze all configured analyzers and return pages.
+ * Parse all configured spec files and return pages.
  */
-export function analyzeAll(
+export function parseAll(
   config: SpektaConfig,
 ): { pages: Page[]; fileToPages: Map<string, Page[]> } {
   const allPages: Page[] = [];
   const fileToPages = new Map<string, Page[]>();
 
-  // RSpec analyzer
+  // RSpec parser
   if (config.analyzer.rspec) {
     const specDir = path.resolve(config.spec_dir);
     for (const specType of config.analyzer.rspec.spec_types) {
       const files = collectRspecFiles(specDir, specType);
       for (const file of files) {
-        const pages = runRspecAnalyzer([file]);
+        const pages = parseRspecFile(file);
         allPages.push(...pages);
         fileToPages.set(file, pages);
       }
     }
   }
 
-  // Vitest analyzer (direct import, no subprocess)
+  // TypeScript parser (for Vitest / Jest / etc.)
   if (config.analyzer.vitest) {
     const specDir = path.resolve(config.analyzer.vitest.spec_dir ?? config.spec_dir);
     const files = collectTestTsFiles(specDir).filter(f => {
@@ -34,7 +34,7 @@ export function analyzeAll(
       return !exclude.some(pattern => f.includes(pattern));
     });
     for (const file of files) {
-      const pages = analyzeVitestFile(file);
+      const pages = parseTypescriptFile(file);
       allPages.push(...pages);
       fileToPages.set(file, pages);
     }
@@ -59,9 +59,8 @@ function collectRspecFiles(specDir: string, specType: string): string[] {
   return collectFiles(dir, ".rb");
 }
 
-function runRspecAnalyzer(files: string[]): Page[] {
-  if (files.length === 0) return [];
-
+function parseRspecFile(file: string): Page[] {
+  // TODO: Replace with text-based TypeScript parser (remove Ruby dependency)
   const analyzerBin = path.resolve(
     import.meta.dirname ?? ".",
     "../../analyzers/rspec/bin/spekta-analyze",
@@ -72,7 +71,7 @@ function runRspecAnalyzer(files: string[]): Page[] {
   }
 
   try {
-    const stdout = execFileSync("bundle", ["exec", "ruby", analyzerBin, ...files], {
+    const stdout = execFileSync("bundle", ["exec", "ruby", analyzerBin, file], {
       encoding: "utf-8",
       maxBuffer: 50 * 1024 * 1024,
     });
@@ -82,7 +81,7 @@ function runRspecAnalyzer(files: string[]): Page[] {
   }
 }
 
-// --- Vitest ---
+// --- TypeScript ---
 
 function collectTestTsFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) return [];

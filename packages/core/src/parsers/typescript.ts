@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import * as fs from "node:fs";
 import * as crypto from "node:crypto";
-import type { Page, Section, Attribute, Step } from "./schema.js";
+import type { Page, Section, Attribute, Step } from "../schema.js";
 
 const SPEKTA_COMMENT_PATTERN = /\[spekta:(\w+)\]\s*(.*)/;
 
@@ -9,7 +9,7 @@ function generateId(filePath: string, ...parts: string[]): string {
   return crypto.createHash("sha256").update([filePath, ...parts].join("/")).digest("hex").slice(0, 8);
 }
 
-export function analyzeFile(filePath: string): Page[] {
+export function parseFile(filePath: string): Page[] {
   const source = fs.readFileSync(filePath, "utf-8");
   const sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true);
 

@@ -1,6 +1,6 @@
 import * as path from "node:path";
 import type { SpektaConfig, BehaviorIR, SiteInfo } from "./types.js";
-import { analyzeAll } from "./analyzer.js";
+import { parseAll } from "./parser.js";
 import { resolveRefs, buildTitleToIdMap } from "./resolve-refs.js";
 
 export interface RenderOptions {
@@ -15,7 +15,7 @@ export async function render(config: SpektaConfig, options: RenderOptions): Prom
 
   console.log(`Analyzing spec files in: ${specDir}`);
 
-  const { pages, fileToPages } = analyzeAll(config);
+  const { pages, fileToPages } = parseAll(config);
 
   if (pages.length === 0) {
     console.warn("No pages found. Check your spec files and configuration.");
