@@ -1,11 +1,11 @@
 {
-  "name": "@spekta/exporter-markdown",
+  "name": "@ktmage/spekta-exporter-markdown",
   "version": "0.2.0",
   "type": "module",
   "main": "dist/render.js",
   "scripts": { "build": "tsc" },
   "dependencies": {
-    "spekta": "workspace:*"
+    "@ktmage/spekta": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

@@ -8,10 +8,10 @@
       },
     },
     "packages/annotators/rspec": {
-      "name": "@spekta/annotator-rspec",
+      "name": "@ktmage/spekta-annotator-rspec",
       "version": "0.2.0",
       "dependencies": {
-        "spekta": "workspace:*",
+        "@ktmage/spekta": "workspace:*",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -19,10 +19,10 @@
       },
     },
     "packages/annotators/vitest": {
-      "name": "@spekta/annotator-vitest",
+      "name": "@ktmage/spekta-annotator-vitest",
       "version": "0.2.0",
       "dependencies": {
-        "spekta": "workspace:*",
+        "@ktmage/spekta": "workspace:*",
         "typescript": "^5.0.0",
       },
       "devDependencies": {
@@ -30,7 +30,7 @@
       },
     },
     "packages/core": {
-      "name": "spekta",
+      "name": "@ktmage/spekta",
       "version": "0.2.0",
       "bin": {
         "spekta": "./bin/spekta.js",
@@ -45,10 +45,10 @@
       },
     },
     "packages/exporters/markdown": {
-      "name": "@spekta/exporter-markdown",
+      "name": "@ktmage/spekta-exporter-markdown",
       "version": "0.2.0",
       "dependencies": {
-        "spekta": "workspace:*",
+        "@ktmage/spekta": "workspace:*",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -56,10 +56,10 @@
       },
     },
     "packages/exporters/web": {
-      "name": "@spekta/exporter-web",
+      "name": "@ktmage/spekta-exporter-web",
       "version": "0.2.0",
       "dependencies": {
-        "spekta": "workspace:*",
+        "@ktmage/spekta": "workspace:*",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -75,6 +75,16 @@
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@1.2.0", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-N10dEJNSsUx41Z6pZsXU8FjPjpBEplgH24sfkmITrBED1/U2Esum9F3lfLrMjKHHjmi557zQn7kR9R+XWXu5Rg=="],
 
     "@jridgewell/sourcemap-codec": ["@jridgewell/sourcemap-codec@1.5.5", "", {}, "sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og=="],
+
+    "@ktmage/spekta": ["@ktmage/spekta@workspace:packages/core"],
+
+    "@ktmage/spekta-annotator-rspec": ["@ktmage/spekta-annotator-rspec@workspace:packages/annotators/rspec"],
+
+    "@ktmage/spekta-annotator-vitest": ["@ktmage/spekta-annotator-vitest@workspace:packages/annotators/vitest"],
+
+    "@ktmage/spekta-exporter-markdown": ["@ktmage/spekta-exporter-markdown@workspace:packages/exporters/markdown"],
+
+    "@ktmage/spekta-exporter-web": ["@ktmage/spekta-exporter-web@workspace:packages/exporters/web"],
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.1.1", "", { "dependencies": { "@emnapi/core": "^1.7.1", "@emnapi/runtime": "^1.7.1", "@tybys/wasm-util": "^0.10.1" } }, "sha512-p64ah1M1ld8xjWv3qbvFwHiFVWrq1yFvV4f7w+mzaqiR4IlSgkqhcRdHwsGgomwzBH51sRY4NEowLxnaBjcW/A=="],
 
@@ -111,14 +121,6 @@
     "@rolldown/binding-win32-x64-msvc": ["@rolldown/binding-win32-x64-msvc@1.0.0-rc.10", "", { "os": "win32", "cpu": "x64" }, "sha512-PYxKHMVHOb5NJuDL53vBUl1VwUjymDcYI6rzpIni0C9+9mTiJedvUxSk7/RPp7OOAm3v+EjgMu9bIy3N6b408w=="],
 
     "@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.0-rc.10", "", {}, "sha512-UkVDEFk1w3mveXeKgaTuYfKWtPbvgck1dT8TUG3bnccrH0XtLTuAyfCoks4Q/M5ZGToSVJTIQYCzy2g/atAOeg=="],
-
-    "@spekta/annotator-rspec": ["@spekta/annotator-rspec@workspace:packages/annotators/rspec"],
-
-    "@spekta/annotator-vitest": ["@spekta/annotator-vitest@workspace:packages/annotators/vitest"],
-
-    "@spekta/exporter-markdown": ["@spekta/exporter-markdown@workspace:packages/exporters/markdown"],
-
-    "@spekta/exporter-web": ["@spekta/exporter-web@workspace:packages/exporters/web"],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
@@ -207,8 +209,6 @@
     "siginfo": ["siginfo@2.0.0", "", {}, "sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g=="],
 
     "source-map-js": ["source-map-js@1.2.1", "", {}, "sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA=="],
-
-    "spekta": ["spekta@workspace:packages/core"],
 
     "stackback": ["stackback@0.0.2", "", {}, "sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw=="],
 

@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import type { AnnotatorPlugin, Annotation } from "spekta/plugin";
+import type { AnnotatorPlugin, Annotation } from "@ktmage/spekta/plugin";
 
 const plugin: AnnotatorPlugin = {
   name: "vitest",

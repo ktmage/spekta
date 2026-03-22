@@ -1,5 +1,5 @@
 {
-  "name": "@spekta/annotator-rspec",
+  "name": "@ktmage/spekta-annotator-rspec",
   "version": "0.2.0",
   "type": "module",
   "main": "src/index.ts",
@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "spekta": "workspace:*"
+    "@ktmage/spekta": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
