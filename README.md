@@ -88,4 +88,4 @@ bun run test
 
 ## ライセンス
 
-[MIT](LICENSE)
+[MIT](LICENSE) | [Third-Party Licenses](THIRD_PARTY_LICENSES.md)
