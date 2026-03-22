@@ -16,6 +16,10 @@ Tests are the spec. Generate living documentation from test code.
 
 AI agents write tests, Spekta turns them into human-readable docs. Add `[spekta:*]` comments to your test files and generate specification documents automatically.
 
+> [!CAUTION]
+> **Disclaimer:**
+> This project is experimental. It is provided "as-is" without warranty of any kind. APIs, schemas, and CLI commands may change without notice. Use at your own risk.
+
 **[Documentation (HTML)](https://ktmage.github.io/spekta/)** | [Documentation (Markdown)](.spekta/markdown/)
 
 ### Documents
@@ -163,6 +167,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 ### Spekta
 
 AI エージェントがテストを書き、Spekta がそれを人間が読める仕様書に変換します。テストファイルに `[spekta:*]` コメントを追加するだけで、仕様書が自動生成されます。
+
+> [!CAUTION]
+> **免責事項：**
+> 本プロジェクトは実験的な取り組みです。いかなる保証もなく「現状のまま」提供されます。API、スキーマ、CLI コマンドは予告なく変更される可能性があります。ご利用は自己責任でお願いいたします。
 
 **[ドキュメント（HTML）](https://ktmage.github.io/spekta/)** | [ドキュメント（Markdown）](.spekta/markdown/)
 
