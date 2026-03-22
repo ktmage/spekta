@@ -93,15 +93,23 @@ exporter:
 # [spekta:list:end]                    # リスト終了
 ```
 
-## パッケージ構成
+## 公式プラグイン
 
-| パッケージ | 説明 |
-|---|---|
-| `packages/core` | CLI + Parser + IR スキーマ |
-| [`packages/annotators/rspec`](https://github.com/ktmage/spekta-annotator-rspec) | RSpec/Capybara Annotator |
-| [`packages/annotators/vitest`](https://github.com/ktmage/spekta-annotator-vitest) | Vitest Annotator |
-| [`packages/exporters/web`](https://github.com/ktmage/spekta-exporter-web) | HTML Exporter + dev サーバー |
-| [`packages/exporters/markdown`](https://github.com/ktmage/spekta-exporter-markdown) | Markdown Exporter |
+Spekta はプラグインで拡張できます。**Annotator** はテスティングフレームワークの DSL を読んで `[spekta:*]` コメントを自動生成し、**Exporter** は IR からドキュメントを出力します。
+
+### Annotator
+
+| パッケージ | 説明 | 状態 |
+|---|---|---|
+| [`@ktmage/spekta-annotator-rspec`](https://github.com/ktmage/spekta-annotator-rspec) | RSpec / Capybara テストからアノテーションを自動生成 | 公開 |
+| `@ktmage/spekta-annotator-vitest` | Vitest テストからアノテーションを自動生成 | 非公開 |
+
+### Exporter
+
+| パッケージ | 説明 | 状態 |
+|---|---|---|
+| [`@ktmage/spekta-exporter-web`](https://github.com/ktmage/spekta-exporter-web) | 静的 HTML 仕様書サイトを生成。dev サーバー付き | 公開 |
+| [`@ktmage/spekta-exporter-markdown`](https://github.com/ktmage/spekta-exporter-markdown) | Markdown 形式の仕様書を生成 | 公開 |
 
 ## プラグイン開発
 
