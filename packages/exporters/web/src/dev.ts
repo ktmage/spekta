@@ -7,14 +7,16 @@ const DEFAULT_PORT = 4321;
 const DEBOUNCE_MS = 500;
 
 export async function dev(config: SpektaConfig): Promise<void> {
-  // Dynamic import to avoid circular dependency at load time
-  const { build, render } = await import("@ktmage/spekta/commands");
+  const { build } = await import("@ktmage/spekta/commands");
 
   const targetDir = path.resolve(config.target_dir);
   const outputDir = findOutputDir(config);
+  let isRebuilding = false;
 
   console.log("Running initial build...");
+  isRebuilding = true;
   await build(config);
+  isRebuilding = false;
 
   const devServer = startDevServer(outputDir, DEFAULT_PORT);
 
@@ -23,6 +25,7 @@ export async function dev(config: SpektaConfig): Promise<void> {
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   const onFileChange = (filename: string | null): void => {
+    if (isRebuilding) return;
     if (filename && config.include) {
       const matchesInclude = config.include.some(pattern => filename.endsWith(pattern));
       if (!matchesInclude) return;
@@ -30,12 +33,15 @@ export async function dev(config: SpektaConfig): Promise<void> {
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
       console.log(`\nFile changed${filename ? `: ${filename}` : ""}. Rebuilding...`);
+      isRebuilding = true;
       try {
-        await render(config);
+        await build(config);
         devServer.notifyReload();
         console.log("Rebuild complete.");
       } catch (buildError) {
         console.error("Rebuild failed:", buildError);
+      } finally {
+        isRebuilding = false;
       }
     }, DEBOUNCE_MS);
   };
