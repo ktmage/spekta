@@ -1,101 +1,80 @@
 # Spekta
 
-**機械的に検証可能なコードから、人間が読めるドキュメントを生成する**
+テストコードから仕様書を生成するツールチェイン。
 
-## 概要
+## 思想
 
-Spekta は、テストコードを静的解析し、人間が読める仕様書を自動生成するツールチェインです。
+テストファイルは実行可能で、正しいかどうか検証可能な唯一の信頼できる仕様書である。Spekta はテストファイルに書かれた `[spekta:*]` コメントを読み取り、人間が読める仕様書を生成する。
 
-AI がコードを大量に生成する時代において、人間はアプリケーションをより高い抽象度で可視化・把握する必要があります。テストコードは AI にとって既に最良のドキュメントです — 検証可能で、曖昧さがなく、開発を駆動する唯一の信頼源です。Spekta はこれを人間向けのドキュメントに変換します。
-
-テスト自体が仕様書です。Spekta はそれを読みやすくしているだけです。
-
-## アーキテクチャ
+## パイプライン
 
 ```
-テストコード → [アナライザー] → IR (JSON) → [レンダラー] → 仕様書
+[Annotator]  テスト DSL を読んで [spekta:*] コメントを自動補完（省略可能）
+    ↓
+[Parser]     [spekta:*] コメントを読んで IR に変換
+    ↓
+[Exporter]   IR からドキュメントを生成
 ```
 
-3 つのレイヤーで構成され、それぞれが独立している。
+## コマンド
 
-### アナライザー
-
-テストコードを静的解析し、IR を出力する。テストフレームワークごとに独立したアナライザーを持つ。
-
-### IR（中間表現）
-
-page と section の 2 階層で構成されるドキュメント構造。全ノードに一意の ID を持つ。テストフレームワークにもレンダラーにも依存しない。
-
-### レンダラー
-
-IR から人間が読めるドキュメントを生成する。出力形式ごとに独立したレンダラーを持つ。
-
-## アナライザー
-
-- [spekta-analyzer-rspec](https://github.com/ktmage/spekta-analyzer-rspec) — RSpec (Feature spec / System spec)
-
-## レンダラー
-
-CLI に内蔵。`.spekta.yml` で有効にする。
-
-- **Web** — Astro + Preact による SSG。ページごとの HTML を生成
-- **Markdown** — ページごとの `.md` ファイルを生成
-- **PDF** — Pandoc で PDF を生成
+```bash
+spekta init                 # .spekta.yml と .spekta/ を生成
+spekta build                # annotate + render
+spekta render               # parse + export のみ
+spekta annotate             # Annotator プラグインを実行
+spekta doctor               # 環境診断
+spekta {exporter}:{command} # Exporter コマンド（例: web:dev）
+```
 
 ## 設定
 
-プロジェクトルートに `.spekta.yml` を配置する。
-
 ```yaml
-spec_dir: spec/
+# .spekta.yml
+version: 1
+target_dir: test/
+include:
+  - ".test.ts"
 
-analyzer:
-  rspec:
-    spec_types:
-      - feature_spec
-      - system_spec
+annotator:
+  "@ktmage/spekta-annotator-vitest":
 
-renderer:
-  web:
-    name: "プロダクト名"
-    description: "サブタイトル"
-  markdown: {}
-  pdf: {}
+exporter:
+  "@ktmage/spekta-exporter-web":
+    name: "My Project"
+  "@ktmage/spekta-exporter-markdown":
 ```
 
-## 開発
+## コメント属性
 
-### セットアップ
+```ruby
+# [spekta:page] company-search        # ページ（英語スラッグ）
+# [spekta:summary] 企業を検索する機能   # 概要
+# [spekta:section] データが存在する場合  # セクション
+# [spekta:why] 初回表示の速度が重要     # 理由
+# [spekta:see] company-detail          # 関連ページ参照
+# [spekta:image] screenshot.png        # 画像
+# [spekta:graph]                       # Mermaid ダイアグラム
+# [spekta:steps]                       # ステップブロック開始
+# [spekta:step] ページを開く            # ステップ
+# [spekta:steps:end]                   # ステップブロック終了
+```
+
+## パッケージ構成
+
+| パッケージ | 説明 |
+|---|---|
+| `packages/core` | CLI + Parser + IR スキーマ |
+| [`packages/annotators/rspec`](https://github.com/ktmage/spekta-annotator-rspec) | RSpec/Capybara Annotator |
+| [`packages/annotators/vitest`](https://github.com/ktmage/spekta-annotator-vitest) | Vitest Annotator |
+| [`packages/exporters/web`](https://github.com/ktmage/spekta-exporter-web) | HTML Exporter + dev サーバー |
+| [`packages/exporters/markdown`](https://github.com/ktmage/spekta-exporter-markdown) | Markdown Exporter |
+
+## 開発
 
 ```bash
 git clone --recurse-submodules https://github.com/ktmage/spekta.git
 cd spekta
-
-# CLI のビルド
-cd packages/cli && npm install && npx tsc && cd ../..
-
-# レンダラーのビルド
-cd packages/renderers/markdown && npm install && npx tsc && cd ../../..
-cd packages/renderers/pdf && npm install && npx tsc && cd ../../..
-cd packages/renderers/web && npm install && cd ../../..
+bun install
+bun run test
 ```
-
-### testbed での動作確認
-
-```bash
-cd testbed
-
-# 仕様書を生成
-mise exec ruby@3.4.4 -- node ../packages/cli/bin/spekta.js build
-
-# ファイル監視 + 開発サーバー
-mise exec ruby@3.4.4 -- node ../packages/cli/bin/spekta.js watch
-```
-
-## ステータス
-
-開発中。`spekta` コマンドとしてのグローバルインストールは未対応。
-
-## ライセンス
-
-MIT
