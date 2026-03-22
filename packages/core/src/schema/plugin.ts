@@ -1,5 +1,4 @@
 import type { IR } from "./ir.js";
-export type { SpektaConfig } from "./types.js";
 import type { SpektaConfig } from "./types.js";
 
 // --- Annotator Plugin ---

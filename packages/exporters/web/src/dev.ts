@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { startDevServer } from "./dev-server.js";
-import type { SpektaConfig } from "@ktmage/spekta/plugin";
+import type { SpektaConfig } from "@ktmage/spekta/types";
 
 const DEFAULT_PORT = 4321;
 const DEBOUNCE_MS = 500;
