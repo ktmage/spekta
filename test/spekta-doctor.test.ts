@@ -4,7 +4,7 @@ import * as path from "node:path";
 import { rspecFixturesDir } from "./helpers.js";
 
 const context = describe;
-const binPath = path.resolve(import.meta.dirname ?? __dirname, "../packages/cli/bin/spekta.js");
+const binPath = path.resolve(import.meta.dirname ?? __dirname, "../packages/core/bin/spekta.js");
 
 function runDoctor(cwd: string): string {
   try {

@@ -1,6 +1,10 @@
 {
   "private": true,
   "type": "module",
+  "workspaces": [
+    "packages/core",
+    "packages/exporters/*"
+  ],
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest"

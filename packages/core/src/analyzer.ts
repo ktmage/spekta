@@ -1,7 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execFileSync, execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import type { Page, SpektaConfig } from "./types.js";
+import { analyzeFile as analyzeVitestFile } from "./vitest-analyze.js";
 
 /**
  * Analyze all configured analyzers and return pages.
@@ -25,7 +26,7 @@ export function analyzeAll(
     }
   }
 
-  // Vitest analyzer
+  // Vitest analyzer (direct import, no subprocess)
   if (config.analyzer.vitest) {
     const specDir = path.resolve(config.analyzer.vitest.spec_dir ?? config.spec_dir);
     const files = collectTestTsFiles(specDir).filter(f => {
@@ -33,7 +34,7 @@ export function analyzeAll(
       return !exclude.some(pattern => f.includes(pattern));
     });
     for (const file of files) {
-      const pages = runVitestAnalyzer([file]);
+      const pages = analyzeVitestFile(file);
       allPages.push(...pages);
       fileToPages.set(file, pages);
     }
@@ -67,7 +68,6 @@ function runRspecAnalyzer(files: string[]): Page[] {
   );
 
   if (!fs.existsSync(analyzerBin)) {
-    console.error(`RSpec analyzer not found at: ${analyzerBin}`);
     return [];
   }
 
@@ -77,8 +77,7 @@ function runRspecAnalyzer(files: string[]): Page[] {
       maxBuffer: 50 * 1024 * 1024,
     });
     return JSON.parse(stdout) as Page[];
-  } catch (err) {
-    console.error("Failed to run RSpec analyzer:", err);
+  } catch {
     return [];
   }
 }
@@ -88,31 +87,6 @@ function runRspecAnalyzer(files: string[]): Page[] {
 function collectTestTsFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) return [];
   return collectFiles(dir, ".test.ts");
-}
-
-function runVitestAnalyzer(files: string[]): Page[] {
-  if (files.length === 0) return [];
-
-  const analyzerBin = path.resolve(
-    import.meta.dirname ?? ".",
-    "../../analyzers/vitest/dist/index.js",
-  );
-
-  if (!fs.existsSync(analyzerBin)) {
-    console.error(`Vitest analyzer not found at: ${analyzerBin}`);
-    return [];
-  }
-
-  try {
-    const stdout = execSync(`node ${analyzerBin} ${files.join(" ")}`, {
-      encoding: "utf-8",
-      maxBuffer: 50 * 1024 * 1024,
-    });
-    return JSON.parse(stdout) as Page[];
-  } catch (err) {
-    console.error("Failed to run Vitest analyzer:", err);
-    return [];
-  }
 }
 
 // --- Common ---

@@ -1,5 +1,7 @@
 import { loadConfig } from "./config.js";
 import { build } from "./build.js";
+import { render } from "./render.js";
+import { complete } from "./complete.js";
 import { watch } from "./watch.js";
 import { doctor } from "./doctor.js";
 
@@ -23,6 +25,12 @@ async function main(): Promise<void> {
     case "build":
       await build(config, { mode: "production" });
       break;
+    case "render":
+      await render(config, { mode: "production" });
+      break;
+    case "complete":
+      await complete(config);
+      break;
     case "watch":
       await watch(config);
       break;
@@ -37,9 +45,11 @@ function printUsage(): void {
   console.log(`Usage: spekta <command>
 
 Commands:
-  build    Analyze spec files and generate documentation
-  watch    Watch spec files and rebuild on changes
-  doctor   Check environment and dependencies`);
+  build      Run annotators, parse spec files, and generate documentation
+  render     Parse spec files and generate documentation (skip annotators)
+  complete   Run annotator plugins to auto-complete comments
+  watch      Watch spec files and rebuild on changes
+  doctor     Check environment and dependencies`);
 }
 
 main();

@@ -3,11 +3,14 @@ import type { SpektaConfig, BehaviorIR, SiteInfo } from "./types.js";
 import { analyzeAll } from "./analyzer.js";
 import { resolveRefs, buildTitleToIdMap } from "./resolve-refs.js";
 
-export interface BuildOptions {
+export interface RenderOptions {
   mode: "production" | "development";
 }
 
-export async function build(config: SpektaConfig, options: BuildOptions): Promise<void> {
+/**
+ * Parse test files and export documentation (without annotator step).
+ */
+export async function render(config: SpektaConfig, options: RenderOptions): Promise<void> {
   const specDir = path.resolve(config.spec_dir);
 
   console.log(`Analyzing spec files in: ${specDir}`);
@@ -26,12 +29,18 @@ export async function build(config: SpektaConfig, options: BuildOptions): Promis
 
   const ir: BehaviorIR = { version: "1.0.0", pages };
 
-  // Web renderer
+  await runExporters(config, ir, options);
+
+  console.log("Build complete.");
+}
+
+async function runExporters(config: SpektaConfig, ir: BehaviorIR, options: RenderOptions): Promise<void> {
+  // Web exporter
   if (config.renderer.web) {
     const webPath = path.resolve(config.renderer.web.path ?? ".spekta/web");
-    const rendererDir = path.resolve(import.meta.dirname ?? ".", "../../renderers/web/dist/render.js");
+    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../exporters/web/dist/render.js");
     try {
-      const { renderWeb } = await import(rendererDir);
+      const { renderWeb } = await import(exporterDir);
       const siteInfo: SiteInfo = {
         name: config.renderer.web.name,
         description: config.renderer.web.description,
@@ -41,36 +50,33 @@ export async function build(config: SpektaConfig, options: BuildOptions): Promis
       renderWeb(ir, siteInfo, webPath);
       console.log(`Web renderer output: ${webPath}/`);
     } catch {
-      console.error(`Web renderer not built. Run: cd packages/renderers/web && npm run build`);
+      console.error(`Web exporter not built. Run: cd packages/exporters/web && bun run build`);
     }
   }
 
-  // Markdown renderer
+  // Markdown exporter
   if (config.renderer.markdown) {
     const mdPath = path.resolve(config.renderer.markdown.path ?? ".spekta/markdown");
-    const rendererDir = path.resolve(import.meta.dirname ?? ".", "../../renderers/markdown/dist/render.js");
+    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../exporters/markdown/dist/render.js");
     try {
-      const { renderMarkdown } = await import(rendererDir);
+      const { renderMarkdown } = await import(exporterDir);
       renderMarkdown(ir, mdPath);
       console.log(`Markdown renderer output: ${mdPath}/`);
     } catch {
-      console.error(`Markdown renderer not built. Run: cd packages/renderers/markdown && npm run build`);
+      console.error(`Markdown exporter not built. Run: cd packages/exporters/markdown && bun run build`);
     }
   }
 
-  // PDF renderer
+  // PDF exporter
   if (config.renderer.pdf) {
     const pdfPath = path.resolve(config.renderer.pdf.path ?? ".spekta/pdf");
-    const rendererDir = path.resolve(import.meta.dirname ?? ".", "../../renderers/pdf/dist/render.js");
+    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../exporters/pdf/dist/render.js");
     try {
-      const { renderPdf } = await import(rendererDir);
+      const { renderPdf } = await import(exporterDir);
       renderPdf(ir, pdfPath);
       console.log(`PDF renderer output: ${pdfPath}/`);
     } catch {
-      console.error(`PDF renderer not built. Run: cd packages/renderers/pdf && npm run build`);
+      console.error(`PDF exporter not built. Run: cd packages/exporters/pdf && bun run build`);
     }
   }
-
-  console.log("Build complete.");
 }
-

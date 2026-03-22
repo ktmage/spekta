@@ -6,7 +6,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { vitestFixturesDir } from "./helpers.js";
 
 const context = describe;
-const binPath = path.resolve(import.meta.dirname ?? __dirname, "../packages/cli/bin/spekta.js");
+const binPath = path.resolve(import.meta.dirname ?? __dirname, "../packages/core/bin/spekta.js");
 
 function waitFor(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

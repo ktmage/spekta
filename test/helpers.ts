@@ -3,7 +3,7 @@ import * as path from "node:path";
 import { execSync } from "node:child_process";
 
 const baseDir = import.meta.dirname ?? __dirname;
-const binPath = path.resolve(baseDir, "../packages/cli/bin/spekta.js");
+const binPath = path.resolve(baseDir, "../packages/core/bin/spekta.js");
 
 export function rspecFixturesDir(): string {
   return path.resolve(baseDir, "fixtures/rspec-project");
