@@ -16,6 +16,7 @@ export async function dev(config: SpektaConfig): Promise<void> {
   console.log("Running initial build...");
   isRebuilding = true;
   await build(config);
+  await new Promise(resolve => setTimeout(resolve, 1000));
   isRebuilding = false;
 
   const devServer = startDevServer(outputDir, DEFAULT_PORT);
@@ -41,7 +42,7 @@ export async function dev(config: SpektaConfig): Promise<void> {
       } catch (buildError) {
         console.error("Rebuild failed:", buildError);
       } finally {
-        isRebuilding = false;
+        setTimeout(() => { isRebuilding = false; }, 1000);
       }
     }, DEBOUNCE_MS);
   };
