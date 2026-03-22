@@ -989,3 +989,19 @@ function renderSection(
   parts.push(`</div>`);
   return parts.join("\n");
 }
+
+// ExporterPlugin interface
+const plugin = {
+  name: "web",
+  defaultOutputDir: "web",
+  export(ir: BehaviorIR, config: Record<string, unknown>, outputDir: string): void {
+    const siteInfo: SiteInfo = {
+      name: config.name as string | undefined,
+      description: config.description as string | undefined,
+      builtAt: new Date().toISOString(),
+    };
+    renderWeb(ir, siteInfo, outputDir);
+  },
+};
+
+export default plugin;

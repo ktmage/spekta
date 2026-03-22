@@ -1,0 +1,8 @@
+{
+  "name": "fixture-rspec",
+  "private": true,
+  "dependencies": {
+    "@ktmage/spekta-exporter-web": "workspace:*",
+    "@ktmage/spekta-exporter-markdown": "workspace:*"
+  }
+}

@@ -3,7 +3,7 @@ include:
   - "_spec.rb"
 
 exporter:
-  web:
+  "@ktmage/spekta-exporter-web":
     name: "テストプロダクト"
     description: "テスト用のプロダクト"
-  markdown:
+  "@ktmage/spekta-exporter-markdown":

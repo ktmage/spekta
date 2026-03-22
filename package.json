@@ -5,7 +5,8 @@
     "packages/core",
     "packages/annotators/*",
     "packages/exporters/*",
-    "testbed"
+    "testbed",
+    "test/fixtures/*"
   ],
   "scripts": {
     "test": "vitest run",

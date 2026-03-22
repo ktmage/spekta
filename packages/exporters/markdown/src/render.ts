@@ -195,3 +195,14 @@ function renderSteps(lines: string[], steps: Step[]): void {
   }
   lines.push("");
 }
+
+// ExporterPlugin interface
+const plugin = {
+  name: "markdown",
+  defaultOutputDir: "markdown",
+  export(ir: BehaviorIR, _config: Record<string, unknown>, outputDir: string): void {
+    renderMarkdown(ir, outputDir);
+  },
+};
+
+export default plugin;

@@ -63,7 +63,7 @@ async function runExporters(config: SpektaConfig, ir: BehaviorIR): Promise<void>
     try {
       const exporterPlugin = await loadExporter(name);
       const outputDir = path.resolve(
-        (exporterConfig.path as string | undefined) ?? `.spekta/${name}`,
+        (exporterConfig.path as string | undefined) ?? `.spekta/${exporterPlugin.defaultOutputDir}`,
       );
       exporterPlugin.export(ir, exporterConfig, outputDir);
       console.log(`Exporter "${name}" output: ${outputDir}/`);
@@ -74,43 +74,13 @@ async function runExporters(config: SpektaConfig, ir: BehaviorIR): Promise<void>
 }
 
 async function loadExporter(name: string): Promise<ExporterPlugin> {
-  if (name.startsWith("@")) {
-    try {
-      const { createRequire } = await import("node:module");
-      const localRequire = createRequire(path.resolve("package.json"));
-      const resolved = localRequire.resolve(name);
-      const exporterModule = await import(resolved);
-      return exporterModule.default as ExporterPlugin;
-    } catch {
-      throw new Error(`Exporter plugin "${name}" not found. Install it to your project.`);
-    }
-  }
-
-  const exporterPath = path.resolve(import.meta.dirname ?? ".", `../../../exporters/${name}/dist/render.js`);
   try {
-    const exporterModule = await import(exporterPath);
-    return wrapLegacyExporter(name, exporterModule);
+    const { createRequire } = await import("node:module");
+    const localRequire = createRequire(path.resolve("package.json"));
+    const resolved = localRequire.resolve(name);
+    const exporterModule = await import(resolved);
+    return exporterModule.default as ExporterPlugin;
   } catch {
-    throw new Error(`Exporter "${name}" not available.`);
+    throw new Error(`Exporter plugin "${name}" not found. Install it to your project.`);
   }
-}
-
-function wrapLegacyExporter(name: string, mod: any): ExporterPlugin {
-  return {
-    name,
-    export(ir, exporterConfig, outputDir) {
-      if (mod.renderWeb) {
-        const siteInfo = {
-          name: exporterConfig.name,
-          description: exporterConfig.description,
-          builtAt: new Date().toISOString(),
-        };
-        mod.renderWeb(ir, siteInfo, outputDir);
-      } else if (mod.renderMarkdown) {
-        mod.renderMarkdown(ir, outputDir);
-      } else if (mod.renderPdf) {
-        mod.renderPdf(ir, outputDir);
-      }
-    },
-  };
 }
