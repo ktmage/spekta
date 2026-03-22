@@ -1,10 +1,9 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { SpektaConfig } from "../schema/types.js";
-import type { AnnotatorPlugin } from "../schema/plugin.js";
 import { importAnnotations } from "../core/importer.js";
 import { collectFiles } from "../core/files.js";
-import { loadPluginModule } from "../core/load-plugin.js";
+import { loadAnnotatorPlugin } from "../core/load-plugin.js";
 
 /**
  * Run annotator plugins to auto-complete [spekta:*] comments in test files.
@@ -21,7 +20,7 @@ export async function complete(config: SpektaConfig): Promise<void> {
 
   for (const name of annotatorNames) {
     try {
-      const annotatorPlugin = await loadAnnotator(name);
+      const annotatorPlugin = await loadAnnotatorPlugin(name);
       const targetDir = path.resolve(config.target_dir);
       const files = collectFiles(targetDir, annotatorPlugin.filePatterns);
 
@@ -41,16 +40,6 @@ export async function complete(config: SpektaConfig): Promise<void> {
 }
 
 function getAnnotatorNames(config: SpektaConfig): string[] {
-  const raw = config as unknown as Record<string, unknown>;
-  const annotator = raw.annotator as Record<string, unknown> | undefined;
-  if (!annotator) return [];
-  return Object.keys(annotator);
-}
-
-async function loadAnnotator(name: string): Promise<AnnotatorPlugin> {
-  try {
-    return await loadPluginModule(name) as AnnotatorPlugin;
-  } catch {
-    throw new Error(`Annotator plugin "${name}" not found. Install it to your project.`);
-  }
+  if (!config.annotator) return [];
+  return Object.keys(config.annotator);
 }

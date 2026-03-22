@@ -1,10 +1,9 @@
 import * as path from "node:path";
 import type { SpektaConfig, BehaviorIR } from "../schema/types.js";
-import type { ExporterPlugin } from "../schema/plugin.js";
 import { parseFiles } from "../core/parser.js";
 import { resolveRefs, buildPageTitleToIdMap } from "../core/resolve-refs.js";
 import { collectFiles, collectAllFiles } from "../core/files.js";
-import { loadPluginModule } from "../core/load-plugin.js";
+import { loadExporterPlugin } from "../core/load-plugin.js";
 
 /**
  * Parse [spekta:*] comments from test files and export documentation.
@@ -62,7 +61,7 @@ async function runExporters(config: SpektaConfig, ir: BehaviorIR): Promise<void>
 
   for (const { name, exporterConfig } of exporterEntries) {
     try {
-      const exporterPlugin = await loadExporter(name);
+      const exporterPlugin = await loadExporterPlugin(name);
       const outputDir = path.resolve(
         (exporterConfig.path as string | undefined) ?? `.spekta/${exporterPlugin.defaultOutputDir}`,
       );
@@ -74,10 +73,3 @@ async function runExporters(config: SpektaConfig, ir: BehaviorIR): Promise<void>
   }
 }
 
-async function loadExporter(name: string): Promise<ExporterPlugin> {
-  try {
-    return await loadPluginModule(name) as ExporterPlugin;
-  } catch {
-    throw new Error(`Exporter plugin "${name}" not found. Install it to your project.`);
-  }
-}
