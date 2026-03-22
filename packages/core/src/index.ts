@@ -23,10 +23,10 @@ async function main(): Promise<void> {
 
   switch (command) {
     case "build":
-      await build(config, { mode: "production" });
+      await build(config);
       break;
     case "render":
-      await render(config, { mode: "production" });
+      await render(config);
       break;
     case "complete":
       await complete(config);

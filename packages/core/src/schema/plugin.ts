@@ -1,4 +1,4 @@
-import type { IR, SiteInfo } from "./schema.js";
+import type { IR } from "./schema.js";
 
 // --- Annotator Plugin ---
 
@@ -18,5 +18,5 @@ export interface AnnotatorPlugin {
 
 export interface ExporterPlugin {
   name: string;
-  export(ir: IR, config: Record<string, unknown>, outputDir: string, siteInfo?: SiteInfo): void;
+  export(ir: IR, config: Record<string, unknown>, outputDir: string): void;
 }

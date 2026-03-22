@@ -5,7 +5,6 @@ export type {
   Section,
   Page,
   IR as BehaviorIR,
-  SiteInfo,
 } from "./schema.js";
 
 // Config types (not part of IR schema)

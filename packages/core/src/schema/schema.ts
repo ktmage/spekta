@@ -53,14 +53,6 @@ export type Section = z.infer<typeof sectionSchema>;
 export type Page = z.infer<typeof pageSchema>;
 export type IR = z.infer<typeof irSchema>;
 
-// --- Site Info (not part of IR, used by exporters) ---
-export interface SiteInfo {
-  name?: string;
-  description?: string;
-  builtAt?: string;
-  mode?: "development" | "production";
-}
-
 // --- Validation ---
 export function validate(data: unknown): IR {
   return irSchema.parse(data);

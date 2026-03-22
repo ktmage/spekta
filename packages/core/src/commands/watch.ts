@@ -20,7 +20,7 @@ export async function watch(config: SpektaConfig): Promise<void> {
   const webPath = path.resolve(config.renderer.web?.path ?? ".spekta/web");
 
   console.log("Running initial build...");
-  await build(config, { mode: "development" });
+  await build(config);
 
   // Start HTTP server
   const server = startServer(webPath);
@@ -42,7 +42,7 @@ export async function watch(config: SpektaConfig): Promise<void> {
     buildTimer = setTimeout(async () => {
       console.log(`\nFile changed${filename ? `: ${filename}` : ""}. Rebuilding...`);
       try {
-        await build(config, { mode: "development" });
+        await build(config);
         notifyReload();
         console.log("Rebuild complete.");
       } catch (err) {
