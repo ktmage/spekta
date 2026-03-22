@@ -8,6 +8,19 @@
 
 テストファイルは実行可能で、正しいかどうか検証可能な唯一の信頼できる仕様書である。Spekta はテストファイルに書かれた `[spekta:*]` コメントを読み取り、人間が読める仕様書を生成する。
 
+## インストール
+
+```bash
+npm install @ktmage/spekta
+```
+
+Exporter プラグインも合わせてインストールする。
+
+```bash
+npm install @ktmage/spekta-exporter-web
+npm install @ktmage/spekta-exporter-markdown
+```
+
 ## パイプライン
 
 ```
@@ -25,6 +38,7 @@ spekta init                 # .spekta.yml と .spekta/ を生成
 spekta build                # annotate + render
 spekta render               # parse + export のみ
 spekta annotate             # Annotator プラグインを実行
+spekta check                # [spekta:*] アノテーションの構文チェック
 spekta doctor               # 環境診断
 spekta {exporter}:{command} # Exporter コマンド（例: web:dev）
 ```
@@ -37,13 +51,18 @@ version: 1
 target_dir: test/
 include:
   - ".test.ts"
+exclude:
+  - "fixtures/"
 
 annotator:
-  "@ktmage/spekta-annotator-vitest":
+  "@ktmage/spekta-annotator-rspec":
+    page_from: filename
 
 exporter:
   "@ktmage/spekta-exporter-web":
     name: "My Project"
+    description: "プロジェクトの説明"
+    basePath: "/my-project/"
   "@ktmage/spekta-exporter-markdown":
 ```
 
@@ -54,7 +73,7 @@ exporter:
 # [spekta:summary] 企業を検索する機能   # 概要
 # [spekta:section] データが存在する場合  # セクション
 # [spekta:why] 初回表示の速度が重要     # 理由
-# [spekta:see] company-detail          # 関連ページ参照
+# [spekta:see] other-page              # 関連ページ参照
 # [spekta:text] 補足テキスト            # テキスト
 # [spekta:callout] warning 注意事項    # 注意書き（note/warning/tip）
 # [spekta:image] screenshot.png        # 画像
