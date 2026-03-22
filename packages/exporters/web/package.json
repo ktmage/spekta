@@ -4,9 +4,12 @@
   "type": "module",
   "main": "dist/render.js",
   "files": ["dist"],
-  "scripts": { "build": "tsc" },
+  "scripts": {
+    "build": "tsc"
+  },
   "dependencies": {
-    "@ktmage/spekta": "workspace:*"
+    "@ktmage/spekta": "workspace:*",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

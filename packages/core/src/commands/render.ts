@@ -62,6 +62,9 @@ async function runExporters(config: SpektaConfig, ir: BehaviorIR): Promise<void>
   for (const { name, exporterConfig } of exporterEntries) {
     try {
       const exporterPlugin = await loadExporterPlugin(name);
+      if (exporterPlugin.configSchema) {
+        exporterPlugin.configSchema.parse(exporterConfig);
+      }
       const outputDir = path.resolve(
         (exporterConfig.path as string | undefined) ?? `.spekta/${exporterPlugin.defaultOutputDir}`,
       );

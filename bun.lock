@@ -60,6 +60,7 @@
       "version": "0.2.0",
       "dependencies": {
         "@ktmage/spekta": "workspace:*",
+        "zod": "^4.3.6",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",

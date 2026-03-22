@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { z } from "zod/v4";
 
 // IR types (self-contained)
 interface BehaviorIR {
@@ -990,14 +991,22 @@ function renderSection(
   return parts.join("\n");
 }
 
+const webExporterConfigSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  path: z.string().optional(),
+}).loose();
+
 // ExporterPlugin interface
 const plugin = {
   name: "web",
   defaultOutputDir: "web",
+  configSchema: webExporterConfigSchema,
   export(ir: BehaviorIR, config: Record<string, unknown>, outputDir: string): void {
+    const webConfig = webExporterConfigSchema.parse(config);
     const siteInfo: SiteInfo = {
-      name: config.name as string | undefined,
-      description: config.description as string | undefined,
+      name: webConfig.name,
+      description: webConfig.description,
       builtAt: new Date().toISOString(),
     };
     renderWeb(ir, siteInfo, outputDir);
