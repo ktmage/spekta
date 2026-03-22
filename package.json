@@ -4,7 +4,8 @@
   "workspaces": [
     "packages/core",
     "packages/annotators/*",
-    "packages/exporters/*"
+    "packages/exporters/*",
+    "testbed"
   ],
   "scripts": {
     "test": "vitest run",

@@ -48,22 +48,15 @@ function getAnnotatorNames(config: SpektaConfig): string[] {
 }
 
 async function loadAnnotator(name: string): Promise<AnnotatorPlugin> {
-  const packageName = name;
-
-  // Try npm package first
   try {
-    const mod = await import(packageName);
+    // Resolve from CWD so plugins installed in the project's node_modules are found
+    const { createRequire } = await import("node:module");
+    const require = createRequire(path.resolve("package.json"));
+    const resolved = require.resolve(name);
+    const mod = await import(resolved);
     return mod.default as AnnotatorPlugin;
   } catch {
-    // Fallback: try relative path from core package (for monorepo development)
-    const shortName = packageName.replace(/@\w+\/spekta-annotator-/, "");
-    const localPath = new URL(`../../../annotators/${shortName}/src/index.ts`, import.meta.url).pathname;
-    try {
-      const mod = await import(localPath);
-      return mod.default as AnnotatorPlugin;
-    } catch {
-      throw new Error(`Annotator plugin "${packageName}" not found. Install it with: bun add ${packageName}`);
-    }
+    throw new Error(`Annotator plugin "${name}" not found. Install it with: bun add ${name}`);
   }
 }
 
