@@ -1,0 +1,12 @@
+[submodule "packages/annotators/rspec"]
+	path = packages/annotators/rspec
+	url = https://github.com/ktmage/spekta-annotator-rspec.git
+[submodule "packages/annotators/vitest"]
+	path = packages/annotators/vitest
+	url = https://github.com/ktmage/spekta-annotator-vitest.git
+[submodule "packages/exporters/web"]
+	path = packages/exporters/web
+	url = https://github.com/ktmage/spekta-exporter-web.git
+[submodule "packages/exporters/markdown"]
+	path = packages/exporters/markdown
+	url = https://github.com/ktmage/spekta-exporter-markdown.git
