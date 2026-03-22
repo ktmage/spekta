@@ -20,13 +20,13 @@ export async function complete(config: SpektaConfig): Promise<void> {
   
   for (const name of annotatorNames) {
     try {
-      const plugin = await loadAnnotator(name);
+      const annotatorPlugin = await loadAnnotator(name);
       const targetDir = path.resolve(config.target_dir);
-      const files = collectFiles(targetDir, plugin.filePatterns);
+      const files = collectFiles(targetDir, annotatorPlugin.filePatterns);
 
       for (const file of files) {
         const source = fs.readFileSync(file, "utf-8");
-        const annotations = plugin.annotate(file, source);
+        const annotations = annotatorPlugin.annotate(file, source);
         if (annotations.length > 0) {
           importAnnotations(file, annotations);
         }
@@ -53,8 +53,8 @@ async function loadAnnotator(name: string): Promise<AnnotatorPlugin> {
     const { createRequire } = await import("node:module");
     const require = createRequire(path.resolve("package.json"));
     const resolved = require.resolve(name);
-    const mod = await import(resolved);
-    return mod.default as AnnotatorPlugin;
+    const annotatorModule = await import(resolved);
+    return annotatorModule.default as AnnotatorPlugin;
   } catch {
     throw new Error(`Annotator plugin "${name}" not found. Install it with: bun add ${name}`);
   }
