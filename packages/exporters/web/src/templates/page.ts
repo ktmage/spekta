@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import type { Page } from "@ktmage/spekta";
 import { escapeHtml } from "../html.js";
+import { pageUrlPath, buildAnchorMap } from "../anchor.js";
 import type { SearchEntry } from "../search.js";
 import type { SiteInfo } from "./header.js";
 import { renderSiteHeader } from "./header.js";
@@ -25,10 +26,12 @@ export function renderPageHtml(
   const inlineJs = loadAsset("client.js");
 
   const siteName = siteInfo.name || "Spekta";
-  const title = `${escapeHtml(page.title)} - ${escapeHtml(siteName)}`;
+  const displayTitle = page.sections?.[0]?.title ?? page.title;
+  const htmlTitle = `${escapeHtml(displayTitle)} - ${escapeHtml(siteName)}`;
 
-  const sidebarHtml = renderSidebar(allPages, page.id, searchEntries);
-  const contentHtml = renderPageContent(page, allPages, pageById, imagePaths);
+  const anchorMap = buildAnchorMap(page);
+  const sidebarHtml = renderSidebar(allPages, page.id, searchEntries, anchorMap);
+  const contentHtml = renderPageContent(page, allPages, pageById, imagePaths, anchorMap);
   const headerHtml = renderSiteHeader(siteInfo);
   const footerHtml = renderSiteFooter(siteInfo);
 
@@ -37,7 +40,7 @@ export function renderPageHtml(
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${title}</title>
+    <title>${htmlTitle}</title>
     <style>${embeddedCss}</style>
     <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs"></script>
     <script>

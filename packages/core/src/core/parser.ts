@@ -11,8 +11,8 @@ interface CommentEntry {
   line: number;
 }
 
-function generateId(...parts: string[]): string {
-  return crypto.createHash("sha256").update(parts.join("/")).digest("hex").slice(0, 8);
+function generateId(pathString: string): string {
+  return crypto.createHash("sha256").update(pathString).digest("hex");
 }
 
 /**
@@ -26,7 +26,7 @@ export function parseFile(filePath: string): Page[] {
 
 export function parseSource(filePath: string, source: string): Page[] {
   const entries = extractComments(source);
-  return buildPages(filePath, entries);
+  return buildPages(entries);
 }
 
 function extractComments(source: string): CommentEntry[] {
@@ -66,23 +66,21 @@ function extractComments(source: string): CommentEntry[] {
   return entries;
 }
 
-function buildPages(filePath: string, entries: CommentEntry[]): Page[] {
+function buildPages(entries: CommentEntry[]): Page[] {
   const pages: Page[] = [];
   let currentPage: Page | null = null;
-  // Stack of (section, indent) for nesting
-  const sectionStack: { section: Section; indent: number }[] = [];
-  // Pending attributes before a page is declared
+  let currentPageTitle = "";
+  const sectionStack: { section: Section; indent: number; title: string }[] = [];
   let pendingAttrs: Attribute[] = [];
 
   for (const entry of entries) {
     if (entry.type === "page") {
-      // Start a new page
+      currentPageTitle = entry.text;
       currentPage = {
-        id: generateId(filePath, entry.text),
+        id: generateId(currentPageTitle),
         type: "feature",
-        title: entry.text,
+        title: currentPageTitle,
       };
-      // Attach pending attributes (summary, why, etc. that appeared before this page)
       if (pendingAttrs.length > 0) {
         currentPage.attributes = pendingAttrs;
         pendingAttrs = [];
@@ -93,38 +91,42 @@ function buildPages(filePath: string, entries: CommentEntry[]): Page[] {
     }
 
     if (entry.type === "section") {
-      const section: Section = {
-        id: generateId(filePath, entry.text, String(entry.line)),
-        title: entry.text,
-      };
-
       // Pop stack until we find a parent with less indent
       while (sectionStack.length > 0 && sectionStack[sectionStack.length - 1].indent >= entry.indent) {
         sectionStack.pop();
       }
 
+      // Build section path for ID: pageTitle/parent1/parent2/.../sectionTitle
+      const sectionPath = [
+        currentPageTitle,
+        ...sectionStack.map(stackEntry => stackEntry.title),
+        entry.text,
+      ].join("/");
+
+      const section: Section = {
+        id: generateId(sectionPath),
+        title: entry.text,
+      };
+
       if (sectionStack.length > 0) {
-        // Nested section
-        const parent = sectionStack[sectionStack.length - 1].section;
-        if (!parent.sections) parent.sections = [];
-        parent.sections.push(section);
+        const parentSection = sectionStack[sectionStack.length - 1].section;
+        if (!parentSection.sections) parentSection.sections = [];
+        parentSection.sections.push(section);
       } else if (currentPage) {
-        // Direct child of page
         if (!currentPage.sections) currentPage.sections = [];
         currentPage.sections.push(section);
       }
 
-      sectionStack.push({ section, indent: entry.indent });
+      sectionStack.push({ section, indent: entry.indent, title: entry.text });
       continue;
     }
 
     if (entry.type === "step") {
       const step: Step = { action: "other", target: entry.text };
-      // Add to most recent section
       if (sectionStack.length > 0) {
-        const current = sectionStack[sectionStack.length - 1].section;
-        if (!current.steps) current.steps = [];
-        current.steps.push(step);
+        const currentSection = sectionStack[sectionStack.length - 1].section;
+        if (!currentSection.steps) currentSection.steps = [];
+        currentSection.steps.push(step);
       }
       continue;
     }
@@ -137,8 +139,7 @@ function buildPages(filePath: string, entries: CommentEntry[]): Page[] {
       attr.text = entry.text;
     }
 
-    // Look ahead: if a [spekta:page] follows (possibly after other attributes),
-    // this attribute belongs to the next page, not the current one
+    // Look ahead: if a [spekta:page] follows, this attribute belongs to the next page
     let hasUpcomingPage = false;
     for (let j = entries.indexOf(entry) + 1; j < entries.length; j++) {
       if (entries[j].type === "page") { hasUpcomingPage = true; break; }
@@ -149,11 +150,10 @@ function buildPages(filePath: string, entries: CommentEntry[]): Page[] {
       continue;
     }
 
-    // Attach to most recent section, or page
     if (sectionStack.length > 0) {
-      const current = sectionStack[sectionStack.length - 1].section;
-      if (!current.attributes) current.attributes = [];
-      current.attributes.push(attr);
+      const currentSection = sectionStack[sectionStack.length - 1].section;
+      if (!currentSection.attributes) currentSection.attributes = [];
+      currentSection.attributes.push(attr);
     } else if (currentPage) {
       if (!currentPage.attributes) currentPage.attributes = [];
       currentPage.attributes.push(attr);
@@ -166,7 +166,7 @@ function buildPages(filePath: string, entries: CommentEntry[]): Page[] {
 }
 
 /**
- * Parse multiple files and collect all pages.
+ * Parse multiple files, merge pages with the same [spekta:page], and collect results.
  */
 export function parseFiles(filePaths: string[]): { pages: Page[]; fileToPages: Map<string, Page[]> } {
   const allPages: Page[] = [];
@@ -178,5 +178,62 @@ export function parseFiles(filePaths: string[]): { pages: Page[]; fileToPages: M
     fileToPages.set(filePath, pages);
   }
 
-  return { pages: allPages, fileToPages };
+  const mergedPages = mergePages(allPages);
+
+  return { pages: mergedPages, fileToPages };
+}
+
+/**
+ * Merge pages with the same ID (same [spekta:page] title).
+ * Sections with the same ID (same path) are also merged recursively.
+ */
+function mergePages(pages: Page[]): Page[] {
+  const pageMap = new Map<string, Page>();
+
+  for (const page of pages) {
+    const existingPage = pageMap.get(page.id);
+    if (!existingPage) {
+      pageMap.set(page.id, { ...page, sections: page.sections ? [...page.sections] : undefined });
+      continue;
+    }
+    // Merge attributes (keep existing, add new)
+    if (page.attributes) {
+      if (!existingPage.attributes) existingPage.attributes = [];
+      existingPage.attributes.push(...page.attributes);
+    }
+    // Merge sections
+    if (page.sections) {
+      if (!existingPage.sections) existingPage.sections = [];
+      for (const newSection of page.sections) {
+        mergeSectionInto(existingPage.sections, newSection);
+      }
+    }
+  }
+
+  return Array.from(pageMap.values());
+}
+
+function mergeSectionInto(existingSections: Section[], newSection: Section): void {
+  const existingSection = existingSections.find(section => section.id === newSection.id);
+  if (!existingSection) {
+    existingSections.push(newSection);
+    return;
+  }
+  // Merge attributes
+  if (newSection.attributes) {
+    if (!existingSection.attributes) existingSection.attributes = [];
+    existingSection.attributes.push(...newSection.attributes);
+  }
+  // Merge steps
+  if (newSection.steps) {
+    if (!existingSection.steps) existingSection.steps = [];
+    existingSection.steps.push(...newSection.steps);
+  }
+  // Merge nested sections recursively
+  if (newSection.sections) {
+    if (!existingSection.sections) existingSection.sections = [];
+    for (const childSection of newSection.sections) {
+      mergeSectionInto(existingSection.sections, childSection);
+    }
+  }
 }

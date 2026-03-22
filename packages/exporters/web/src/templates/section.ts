@@ -1,6 +1,7 @@
 import * as path from "node:path";
 import type { Page, Section } from "@ktmage/spekta";
 import { escapeHtml } from "../html.js";
+import { pageUrlPath } from "../anchor.js";
 import { stepToPhrase } from "../step-phrase.js";
 
 export function renderSection(
@@ -9,10 +10,12 @@ export function renderSection(
   allPages: Page[],
   pageById: Map<string, Page>,
   imagePaths: string[],
+  anchorMap: Map<string, string>,
 ): string {
   const depthClass = `spec-group--depth-${Math.min(depth, 4)}`;
   const headingLevel = Math.min(depth + 1, 5);
   const headingTag = `h${headingLevel}`;
+  const sectionAnchor = anchorMap.get(section.id) ?? section.title;
 
   const summaryAttr = section.attributes?.find((a) => a.type === "summary");
   const whyAttr = section.attributes?.find((a) => a.type === "why");
@@ -22,7 +25,7 @@ export function renderSection(
 
   const parts: string[] = [];
 
-  parts.push(`<div class="spec-group ${depthClass}" id="${escapeHtml(section.id)}">`);
+  parts.push(`<div class="spec-group ${depthClass}" id="${escapeHtml(sectionAnchor)}">`);
   parts.push(`  <div class="spec-group__header">`);
   parts.push(`    <${headingTag} class="spec-group__heading">${escapeHtml(section.title)}</${headingTag}>`);
 
@@ -35,7 +38,7 @@ export function renderSection(
       .map((attr) => {
         const refPage = pageById.get(attr.ref ?? "");
         if (!refPage) return "";
-        return `<a href="/${escapeHtml(refPage.id)}/" class="spec-group__related-link">${escapeHtml(refPage.title)}</a>`;
+        return `<a href="${escapeHtml(pageUrlPath(refPage))}" class="spec-group__related-link">${escapeHtml(refPage.title)}</a>`;
       })
       .filter((link) => link !== "")
       .join(" ");
@@ -81,7 +84,7 @@ export function renderSection(
   if (section.sections && section.sections.length > 0) {
     parts.push(`  <div class="spec-group__children">`);
     for (const childSection of section.sections) {
-      parts.push(renderSection(childSection, depth + 1, allPages, pageById, imagePaths));
+      parts.push(renderSection(childSection, depth + 1, allPages, pageById, imagePaths, anchorMap));
     }
     parts.push(`  </div>`);
   }

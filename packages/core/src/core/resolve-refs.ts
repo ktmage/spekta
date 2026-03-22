@@ -1,105 +1,89 @@
+import * as crypto from "node:crypto";
 import type { Page, Section, Attribute } from "../schema/types.js";
 
-export function buildPageTitleToIdMap(pages: Page[]): Map<string, string> {
-  const map = new Map<string, string>();
-  for (const page of pages) {
-    map.set(page.title, page.id);
-  }
-  return map;
+function generateId(pathString: string): string {
+  return crypto.createHash("sha256").update(pathString).digest("hex");
 }
 
 /**
- * Resolve see references in the pages array.
+ * Build a lookup of all title paths → IDs for pages and sections.
  *
- * Parser sets attr.ref to the raw text from [spekta:see] comments, which can be:
- *   - "spec/features/review_spec.rb"            (file path → first page in file)
- *   - "spec/features/company_spec.rb:企業詳細ページ" (file path:title → page by title)
- *   - "企業詳細ページ"                            (title only → page by title)
- *
- * After resolution, attr.ref is replaced with the target page's ID.
+ * Examples:
+ *   "company-search"                              → page ID
+ *   "company-search/企業検索"                      → section ID
+ *   "company-search/企業検索/データが存在する場合"   → nested section ID
  */
-export function resolveRefs(
-  pages: Page[],
-  fileToPages: Map<string, Page[]>,
-  pageTitleToIdMap: Map<string, string>,
-): void {
+function buildPathToIdMap(pages: Page[]): Map<string, string> {
+  const pathToIdMap = new Map<string, string>();
+
   for (const page of pages) {
-    resolveAttributeRefs(page.attributes, fileToPages, pageTitleToIdMap);
+    pathToIdMap.set(page.title, page.id);
     if (page.sections) {
-      resolveSectionRefs(page.sections, fileToPages, pageTitleToIdMap);
+      buildSectionPaths(page.title, page.sections, pathToIdMap);
+    }
+  }
+
+  return pathToIdMap;
+}
+
+function buildSectionPaths(
+  parentPath: string,
+  sections: Section[],
+  pathToIdMap: Map<string, string>,
+): void {
+  for (const section of sections) {
+    const sectionPath = `${parentPath}/${section.title}`;
+    pathToIdMap.set(sectionPath, section.id);
+    if (section.sections) {
+      buildSectionPaths(sectionPath, section.sections, pathToIdMap);
+    }
+  }
+}
+
+/**
+ * Resolve [spekta:see] references by title path.
+ *
+ * Supported formats:
+ *   - "company-search"                              → page
+ *   - "company-search/企業検索/データが存在する場合"   → section
+ */
+export function resolveRefs(pages: Page[]): void {
+  const pathToIdMap = buildPathToIdMap(pages);
+
+  for (const page of pages) {
+    resolveAttributeRefs(page.attributes, pathToIdMap);
+    if (page.sections) {
+      resolveSectionRefs(page.sections, pathToIdMap);
     }
   }
 }
 
 function resolveSectionRefs(
   sections: Section[],
-  fileToPages: Map<string, Page[]>,
-  pageTitleToIdMap: Map<string, string>,
+  pathToIdMap: Map<string, string>,
 ): void {
   for (const section of sections) {
-    resolveAttributeRefs(section.attributes, fileToPages, pageTitleToIdMap);
+    resolveAttributeRefs(section.attributes, pathToIdMap);
     if (section.sections) {
-      resolveSectionRefs(section.sections, fileToPages, pageTitleToIdMap);
+      resolveSectionRefs(section.sections, pathToIdMap);
     }
   }
 }
 
 function resolveAttributeRefs(
   attributes: Attribute[] | undefined,
-  fileToPages: Map<string, Page[]>,
-  pageTitleToIdMap: Map<string, string>,
+  pathToIdMap: Map<string, string>,
 ): void {
   if (!attributes) return;
 
   for (const attr of attributes) {
     if (attr.type !== "see" || !attr.ref) continue;
 
-    const refText = attr.ref;
-
-    // Try title-only match first (e.g. "企業詳細ページ")
-    const titleOnlyId = pageTitleToIdMap.get(refText);
-    if (titleOnlyId) {
-      attr.ref = titleOnlyId;
-      continue;
-    }
-
-    // Parse "file:Title" or just "file"
-    const colonIndex = refText.lastIndexOf(":");
-    let filePath: string;
-    let targetTitle: string | undefined;
-
-    if (colonIndex > 0 && !refText.substring(0, colonIndex).endsWith("\\")) {
-      filePath = refText.substring(0, colonIndex);
-      targetTitle = refText.substring(colonIndex + 1);
+    const targetId = pathToIdMap.get(attr.ref);
+    if (targetId) {
+      attr.ref = targetId;
     } else {
-      filePath = refText;
-      targetTitle = undefined;
-    }
-
-    if (targetTitle) {
-      const pageId = pageTitleToIdMap.get(targetTitle);
-      if (pageId) {
-        attr.ref = pageId;
-      } else {
-        console.error(`[resolve-refs] Page "${targetTitle}" not found (from: ${refText})`);
-      }
-    } else {
-      const pagesInFile = fileToPages.get(filePath);
-      if (pagesInFile && pagesInFile.length > 0) {
-        attr.ref = pagesInFile[0].id;
-      } else {
-        let found = false;
-        for (const [key, filePages] of fileToPages) {
-          if (key.endsWith(filePath) && filePages.length > 0) {
-            attr.ref = filePages[0].id;
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          console.error(`[resolve-refs] File "${filePath}" not found (from: ${refText})`);
-        }
-      }
+      console.error(`[resolve-refs] "${attr.ref}" not found.`);
     }
   }
 }

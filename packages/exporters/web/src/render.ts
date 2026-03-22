@@ -3,6 +3,7 @@ import * as path from "node:path";
 import type { IR, Page } from "@ktmage/spekta";
 import { z } from "zod/v4";
 import { collectSearchEntries } from "./search.js";
+import { pageUrlPath } from "./anchor.js";
 import { renderPageHtml, renderRedirectHtml } from "./templates/page.js";
 import type { SiteInfo } from "./templates/header.js";
 
@@ -25,14 +26,14 @@ export function renderWeb(ir: IR, siteInfo: SiteInfo, outputPath: string): void 
 
   for (const page of ir.pages) {
     const pageHtml = renderPageHtml(page, ir.pages, pageById, siteInfo, searchEntries, imagePaths);
-    const pageDir = path.join(outputPath, page.id);
+    const pageDir = path.join(outputPath, page.type, page.title);
     fs.mkdirSync(pageDir, { recursive: true });
     fs.writeFileSync(path.join(pageDir, "index.html"), pageHtml, "utf-8");
   }
 
   if (ir.pages.length > 0) {
-    const firstPageId = ir.pages[0].id;
-    fs.writeFileSync(path.join(outputPath, "index.html"), renderRedirectHtml(`/${firstPageId}/`), "utf-8");
+    const firstPage = ir.pages[0];
+    fs.writeFileSync(path.join(outputPath, "index.html"), renderRedirectHtml(pageUrlPath(firstPage)), "utf-8");
   }
 
   fs.writeFileSync(path.join(outputPath, "404.html"), renderRedirectHtml("/"), "utf-8");

@@ -38,15 +38,28 @@ export function isRubyAvailable(): boolean {
 }
 
 /**
- * 生成されたHTMLの中から共通の検証を行うヘルパー。
+ * Find all page directories (containing index.html) under webDir.
+ * Returns relative paths from webDir (e.g. "feature/検索").
  */
 export function getGeneratedPages(webDir: string): string[] {
   if (!fs.existsSync(webDir)) return [];
-  return fs.readdirSync(webDir).filter(e =>
-    fs.statSync(path.join(webDir, e)).isDirectory() && e !== "images"
-  );
+  const pagePaths: string[] = [];
+  findIndexHtmlDirs(webDir, webDir, pagePaths);
+  return pagePaths;
 }
 
-export function readPageHtml(webDir: string, pageId: string): string {
-  return fs.readFileSync(path.join(webDir, pageId, "index.html"), "utf-8");
+function findIndexHtmlDirs(baseDir: string, currentDir: string, pagePaths: string[]): void {
+  const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.isDirectory() || entry.name === "images") continue;
+    const fullPath = path.join(currentDir, entry.name);
+    if (fs.existsSync(path.join(fullPath, "index.html"))) {
+      pagePaths.push(path.relative(baseDir, fullPath));
+    }
+    findIndexHtmlDirs(baseDir, fullPath, pagePaths);
+  }
+}
+
+export function readPageHtml(webDir: string, pagePath: string): string {
+  return fs.readFileSync(path.join(webDir, pagePath, "index.html"), "utf-8");
 }

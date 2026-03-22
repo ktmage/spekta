@@ -1,5 +1,6 @@
 import type { Page } from "@ktmage/spekta";
 import { escapeHtml } from "../html.js";
+import { pageUrlPath } from "../anchor.js";
 import type { SearchEntry } from "../search.js";
 
 const CHEVRON_SVG = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
@@ -8,25 +9,29 @@ export function renderSidebar(
   pages: Page[],
   currentPageId: string,
   searchEntries: SearchEntry[],
+  anchorMap: Map<string, string>,
 ): string {
   const navItems = pages.map((page) => {
     const isActive = page.id === currentPageId;
     const activeClass = isActive ? " sidebar__link--active" : "";
     const openAttr = isActive ? " open" : "";
+    const pageUrl = pageUrlPath(page);
 
     let subtreeHtml = "";
     if (page.sections && page.sections.length > 0) {
       const sectionItems = page.sections.map((section) => {
+        const sectionAnchor = anchorMap.get(section.id) ?? section.title;
         let childrenHtml = "";
         if (section.sections && section.sections.length > 0) {
           const childItems = section.sections.map((child) => {
+            const childAnchor = anchorMap.get(child.id) ?? child.title;
             const isLeaf = !child.sections || child.sections.length === 0;
             const leafClass = isLeaf ? " sidebar__sublink--leaf" : "";
-            return `<li><a href="/${escapeHtml(page.id)}/#${escapeHtml(child.id)}" class="sidebar__sublink${leafClass}">${escapeHtml(child.title)}</a></li>`;
+            return `<li><a href="${escapeHtml(pageUrl)}#${escapeHtml(childAnchor)}" class="sidebar__sublink${leafClass}">${escapeHtml(child.title)}</a></li>`;
           }).join("");
           childrenHtml = `<ul class="sidebar__subtree">${childItems}</ul>`;
         }
-        return `<li><a href="/${escapeHtml(page.id)}/#${escapeHtml(section.id)}" class="sidebar__sublink">${escapeHtml(section.title)}</a>${childrenHtml}</li>`;
+        return `<li><a href="${escapeHtml(pageUrl)}#${escapeHtml(sectionAnchor)}" class="sidebar__sublink">${escapeHtml(section.title)}</a>${childrenHtml}</li>`;
       }).join("");
       subtreeHtml = `<ul class="sidebar__subtree">${sectionItems}</ul>`;
     }
@@ -34,7 +39,7 @@ export function renderSidebar(
     return `<div class="sidebar__section">
           <details${openAttr}>
             <summary>
-              <a href="/${escapeHtml(page.id)}/" class="sidebar__link sidebar__link--top${activeClass}">
+              <a href="${escapeHtml(pageUrl)}" class="sidebar__link sidebar__link--top${activeClass}">
                 <span class="sidebar__link-label">${escapeHtml(page.title)}</span>
                 <span class="sidebar__toggle">${CHEVRON_SVG}</span>
               </a>

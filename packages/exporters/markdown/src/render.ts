@@ -1,12 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-
-// IR types (self-contained)
-interface BehaviorIR { version: string; pages: Page[]; }
-interface Page { id: string; type: string; title: string; attributes?: Attribute[]; sections?: Section[]; }
-interface Section { id: string; title: string; attributes?: Attribute[]; sections?: Section[]; steps?: Step[]; }
-interface Attribute { type: string; text?: string; ref?: string; }
-interface Step { action: string; target: string; value?: string; }
+import type { IR, Page, Section, Attribute, Step } from "@ktmage/spekta";
 
 function stepToPhrase(step: Step): string {
   switch (step.action) {
@@ -24,67 +18,49 @@ function stepToPhrase(step: Step): string {
   }
 }
 
-export type { BehaviorIR };
-
-/**
- * Render BehaviorIR to Markdown files.
- *
- * For each page, generates a .md file named after the page ID.
- * Copies referenced images to the output/images/ directory.
- */
-export function renderMarkdown(ir: BehaviorIR, outputPath: string): void {
+export function renderMarkdown(ir: IR, outputPath: string): void {
   fs.mkdirSync(outputPath, { recursive: true });
 
-  // Build a page ID → page mapping for resolving see refs
   const pageById = new Map<string, Page>();
   for (const page of ir.pages) {
     pageById.set(page.id, page);
   }
 
-  // Collect all image paths for copying
   const imagePaths: string[] = [];
 
   for (const page of ir.pages) {
-    const md = renderPage(page, pageById, imagePaths);
-    const filePath = path.join(outputPath, `${page.id}.md`);
-    fs.writeFileSync(filePath, md, "utf-8");
+    const markdownContent = renderPage(page, pageById, imagePaths);
+    const markdownFilePath = path.join(outputPath, `${page.title}.md`);
+    fs.writeFileSync(markdownFilePath, markdownContent, "utf-8");
   }
 
-  // Copy images
   if (imagePaths.length > 0) {
     const imagesDir = path.join(outputPath, "images");
     fs.mkdirSync(imagesDir, { recursive: true });
-
-    for (const imgPath of imagePaths) {
-      const srcPath = path.resolve(imgPath);
-      if (fs.existsSync(srcPath)) {
-        const destPath = path.join(imagesDir, path.basename(imgPath));
-        fs.copyFileSync(srcPath, destPath);
+    for (const imagePath of imagePaths) {
+      const sourcePath = path.resolve(imagePath);
+      if (fs.existsSync(sourcePath)) {
+        fs.copyFileSync(sourcePath, path.join(imagesDir, path.basename(imagePath)));
       }
     }
   }
 }
 
-/**
- * Render a single page to Markdown text.
- */
 function renderPage(
   page: Page,
   pageById: Map<string, Page>,
   imagePaths: string[],
 ): string {
   const lines: string[] = [];
+  const displayTitle = page.sections?.[0]?.title ?? page.title;
 
-  // Page title
-  lines.push(`# ${page.title}`);
+  lines.push(`# ${displayTitle}`);
   lines.push("");
 
-  // Page attributes
   if (page.attributes) {
     renderAttributes(lines, page.attributes, pageById, imagePaths);
   }
 
-  // Sections
   if (page.sections) {
     for (const section of page.sections) {
       renderSection(lines, section, 2, pageById, imagePaths);
@@ -94,9 +70,6 @@ function renderPage(
   return lines.join("\n");
 }
 
-/**
- * Render a section at the given heading depth.
- */
 function renderSection(
   lines: string[],
   section: Section,
@@ -104,34 +77,27 @@ function renderSection(
   pageById: Map<string, Page>,
   imagePaths: string[],
 ): void {
-  // Cap depth at 4 (####)
   const headingLevel = Math.min(depth, 4);
-  const prefix = "#".repeat(headingLevel);
+  const headingPrefix = "#".repeat(headingLevel);
 
-  lines.push(`${prefix} ${section.title}`);
+  lines.push(`${headingPrefix} ${section.title}`);
   lines.push("");
 
-  // Section attributes
   if (section.attributes) {
     renderAttributes(lines, section.attributes, pageById, imagePaths);
   }
 
-  // Steps
   if (section.steps && section.steps.length > 0) {
     renderSteps(lines, section.steps);
   }
 
-  // Nested sections
   if (section.sections) {
-    for (const child of section.sections) {
-      renderSection(lines, child, depth + 1, pageById, imagePaths);
+    for (const childSection of section.sections) {
+      renderSection(lines, childSection, depth + 1, pageById, imagePaths);
     }
   }
 }
 
-/**
- * Render attributes to Markdown lines.
- */
 function renderAttributes(
   lines: string[],
   attributes: Attribute[],
@@ -146,24 +112,21 @@ function renderAttributes(
           lines.push("");
         }
         break;
-
       case "why":
         if (attr.text) {
           lines.push(`> **なぜ**: ${attr.text}`);
           lines.push("");
         }
         break;
-
       case "see":
         if (attr.ref) {
           const refPage = pageById.get(attr.ref);
           if (refPage) {
-            lines.push(`関連: [${refPage.title}](${refPage.id}.md)`);
+            lines.push(`関連: [${refPage.title}](${refPage.title}.md)`);
             lines.push("");
           }
         }
         break;
-
       case "image":
         if (attr.text) {
           imagePaths.push(attr.text);
@@ -172,7 +135,6 @@ function renderAttributes(
           lines.push("");
         }
         break;
-
       case "graph":
         if (attr.text) {
           lines.push("```mermaid");
@@ -185,13 +147,10 @@ function renderAttributes(
   }
 }
 
-/**
- * Render steps as a numbered list.
- */
 function renderSteps(lines: string[], steps: Step[]): void {
-  for (let i = 0; i < steps.length; i++) {
-    const phrase = stepToPhrase(steps[i]);
-    lines.push(`${i + 1}. ${phrase}`);
+  for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
+    const phrase = stepToPhrase(steps[stepIndex]);
+    lines.push(`${stepIndex + 1}. ${phrase}`);
   }
   lines.push("");
 }
@@ -200,7 +159,7 @@ function renderSteps(lines: string[], steps: Step[]): void {
 const plugin = {
   name: "markdown",
   defaultOutputDir: "markdown",
-  export(ir: BehaviorIR, _config: Record<string, unknown>, outputDir: string): void {
+  export(ir: IR, _config: Record<string, unknown>, outputDir: string): void {
     renderMarkdown(ir, outputDir);
   },
 };

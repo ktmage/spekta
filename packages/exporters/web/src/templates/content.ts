@@ -1,6 +1,7 @@
 import * as path from "node:path";
 import type { Page } from "@ktmage/spekta";
 import { escapeHtml } from "../html.js";
+import { pageUrlPath } from "../anchor.js";
 import { renderSection } from "./section.js";
 
 export function renderPageContent(
@@ -8,11 +9,13 @@ export function renderPageContent(
   allPages: Page[],
   pageById: Map<string, Page>,
   imagePaths: string[],
+  anchorMap: Map<string, string>,
 ): string {
   const parts: string[] = [];
+  const displayTitle = page.sections?.[0]?.title ?? page.title;
 
   parts.push(`<div class="spec-content">`);
-  parts.push(`  <h1 class="spec-content__title">${escapeHtml(page.title)}</h1>`);
+  parts.push(`  <h1 class="spec-content__title">${escapeHtml(displayTitle)}</h1>`);
 
   const summaryAttr = page.attributes?.find((a) => a.type === "summary");
   const seeRefs = page.attributes?.filter((a) => a.type === "see") ?? [];
@@ -28,7 +31,7 @@ export function renderPageContent(
       .map((attr) => {
         const refPage = pageById.get(attr.ref ?? "");
         if (!refPage) return "";
-        return `<a href="/${escapeHtml(refPage.id)}/" class="spec-content__related-link">${escapeHtml(refPage.title)}</a>`;
+        return `<a href="${escapeHtml(pageUrlPath(refPage))}" class="spec-content__related-link">${escapeHtml(refPage.title)}</a>`;
       })
       .filter((link) => link !== "")
       .join(" ");
@@ -44,7 +47,7 @@ export function renderPageContent(
     imagePaths.push(imageAttr.text);
     const filename = path.basename(imageAttr.text);
     parts.push(`  <div class="spec-image">`);
-    parts.push(`    <img src="/images/${escapeHtml(filename)}" alt="${escapeHtml(page.title)}" />`);
+    parts.push(`    <img src="/images/${escapeHtml(filename)}" alt="${escapeHtml(displayTitle)}" />`);
     parts.push(`  </div>`);
   }
 
@@ -57,7 +60,7 @@ export function renderPageContent(
   if (page.sections && page.sections.length > 0) {
     parts.push(`  <div class="spec-content__body">`);
     for (const section of page.sections) {
-      parts.push(renderSection(section, 1, allPages, pageById, imagePaths));
+      parts.push(renderSection(section, 1, allPages, pageById, imagePaths, anchorMap));
     }
     parts.push(`  </div>`);
   }

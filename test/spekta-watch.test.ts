@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as http from "node:http";
 import { spawn, type ChildProcess } from "node:child_process";
-import { vitestFixturesDir } from "./helpers.js";
+import { vitestFixturesDir, getGeneratedPages, readPageHtml } from "./helpers.js";
 
 const context = describe;
 const binPath = path.resolve(import.meta.dirname ?? __dirname, "../packages/core/bin/spekta.js");
@@ -110,14 +110,10 @@ describe("spekta web:dev", () => {
 
       // [spekta:step] 生成された HTML に変更内容が反映されている
       const webDir = path.join(projectDir, ".spekta/web");
-      const pages = fs.readdirSync(webDir).filter((entry: string) => {
-        const fullPath = path.join(webDir, entry);
-        return fs.statSync(fullPath).isDirectory() && entry !== "images";
-      });
+      const pages = getGeneratedPages(webDir);
       let found = false;
       for (const page of pages) {
-        const html = fs.readFileSync(path.join(webDir, page, "index.html"), "utf-8");
-        if (html.includes("【テスト更新】")) { found = true; break; }
+        if (readPageHtml(webDir, page).includes("【テスト更新】")) { found = true; break; }
       }
       expect(found).toBe(true);
 
