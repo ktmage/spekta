@@ -63,7 +63,7 @@ Commands:
   render             Parse test files and generate documentation (skip annotators)
   annotate           Run annotator plugins to add [spekta:*] comments
   doctor             Check environment and dependencies
-  {plugin}:{command} Run a plugin command (e.g. web:dev)`);
+  {exporter}:{command} Run an exporter command (e.g. web:dev)`);
 }
 
 main();
