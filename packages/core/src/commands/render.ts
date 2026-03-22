@@ -42,7 +42,7 @@ export async function render(config: SpektaConfig, options: RenderOptions): Prom
 
   await runExporters(config, ir, options);
 
-  console.log("Build complete.");
+  console.log("Render complete.");
 }
 
 function collectTargetFiles(config: SpektaConfig): string[] {
