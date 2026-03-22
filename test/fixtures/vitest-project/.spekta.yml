@@ -1,3 +1,4 @@
+version: 1
 target_dir: test/
 include:
   - ".test.ts"

@@ -20,6 +20,7 @@ const annotatorMapSchema = z.record(annotatorPackageName, pluginOptionsSchema);
 const exporterMapSchema = z.record(exporterPackageName, pluginOptionsSchema);
 
 export const spektaConfigSchema = z.object({
+  version: z.number(),
   target_dir: z.string(),
   include:    z.array(z.string()).optional(),
   exclude:    z.array(z.string()).optional(),
