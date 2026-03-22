@@ -12,7 +12,7 @@ export interface Annotation {
 export interface AnnotatorPlugin {
   name: string;
   filePatterns: string[];
-  annotate(filePath: string, source: string): Annotation[];
+  annotate(filePath: string, source: string, config: Record<string, unknown>): Annotation[];
 }
 
 // --- Exporter Plugin ---

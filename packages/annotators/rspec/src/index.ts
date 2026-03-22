@@ -1,10 +1,19 @@
+import * as path from "node:path";
 import type { AnnotatorPlugin, Annotation } from "@ktmage/spekta/plugin";
+
+type PageFrom = "manual" | "filename";
+
+function derivePageName(filePath: string): string {
+  const basename = path.basename(filePath, path.extname(filePath));
+  return basename.replace(/_spec$/, "").replace(/_/g, "-");
+}
 
 const plugin: AnnotatorPlugin = {
   name: "rspec",
   filePatterns: ["*_spec.rb"],
 
-  annotate(filePath: string, source: string): Annotation[] {
+  annotate(filePath: string, source: string, config: Record<string, unknown>): Annotation[] {
+    const pageFrom = (config.page_from as PageFrom | undefined) ?? "manual";
     const lines = source.split("\n");
     const annotations: Annotation[] = [];
     let inScenario = false;
@@ -15,14 +24,20 @@ const plugin: AnnotatorPlugin = {
       const line = lines[i];
       const lineNum = i + 1;
 
-      // feature "title" do / describe "title" do → section
-      // [spekta:page] は手書き。Annotator は section のみ生成する。
+      // feature "title" do / describe "title" do → section (+ optional page)
       const describeMatch = line.match(/^\s*(?:feature|describe)\s+["'](.+?)["']\s+do/);
       if (describeMatch) {
         if (stepsStarted) {
           annotations.push({ line: lastStepLine + 1, type: "steps:end", text: "" });
           stepsStarted = false;
         }
+
+        // Generate [spekta:page] from filename if configured
+        const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
+        if (indent <= 0 && pageFrom === "filename") {
+          annotations.push({ line: lineNum, type: "page", text: derivePageName(filePath) });
+        }
+
         annotations.push({ line: lineNum, type: "section", text: describeMatch[1] });
         inScenario = false;
         continue;
@@ -95,7 +110,6 @@ const plugin: AnnotatorPlugin = {
       }
     }
 
-    // Close unclosed steps at end of file
     if (stepsStarted) {
       annotations.push({ line: lastStepLine + 1, type: "steps:end", text: "" });
     }

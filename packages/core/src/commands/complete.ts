@@ -26,7 +26,8 @@ export async function complete(config: SpektaConfig): Promise<void> {
 
       for (const file of files) {
         const source = fs.readFileSync(file, "utf-8");
-        const annotations = annotatorPlugin.annotate(file, source);
+        const annotatorConfig = (config.annotator?.[name] ?? {}) as Record<string, unknown>;
+        const annotations = annotatorPlugin.annotate(file, source, annotatorConfig);
         if (annotations.length > 0) {
           importAnnotations(file, annotations);
         }
