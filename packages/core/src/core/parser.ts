@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as crypto from "node:crypto";
-import type { Page, Section, Attribute, Step } from "../schema/ir.js";
+import type { Page, Node, SectionNode } from "../schema/ir.js";
 
 const SPEKTA_PATTERN = /^(\s*)(?:\/\/|#)\s*\[spekta:(\w+)\]\s*(.*)/;
 
@@ -15,10 +15,6 @@ function generateId(pathString: string): string {
   return crypto.createHash("sha256").update(pathString).digest("hex");
 }
 
-/**
- * Parse a single file's [spekta:*] comments into pages.
- * Language-agnostic: only reads comment patterns, doesn't understand any DSL.
- */
 export function parseFile(filePath: string): Page[] {
   const source = fs.readFileSync(filePath, "utf-8");
   return parseSource(filePath, source);
@@ -42,7 +38,6 @@ function extractComments(source: string): CommentEntry[] {
     const textLines: string[] = [];
     if (match[3]) textLines.push(match[3]);
 
-    // Multi-line for graph
     if (type === "graph") {
       let j = i + 1;
       while (j < lines.length) {
@@ -70,8 +65,8 @@ function buildPages(entries: CommentEntry[]): Page[] {
   const pages: Page[] = [];
   let currentPage: Page | null = null;
   let currentPageTitle = "";
-  const sectionStack: { section: Section; indent: number; title: string }[] = [];
-  let pendingAttrs: Attribute[] = [];
+  const sectionStack: { sectionNode: SectionNode; indent: number; title: string }[] = [];
+  let pendingNodes: Node[] = [];
 
   for (const entry of entries) {
     if (entry.type === "page") {
@@ -81,9 +76,9 @@ function buildPages(entries: CommentEntry[]): Page[] {
         type: "feature",
         title: currentPageTitle,
       };
-      if (pendingAttrs.length > 0) {
-        currentPage.attributes = pendingAttrs;
-        pendingAttrs = [];
+      if (pendingNodes.length > 0) {
+        currentPage.children = pendingNodes;
+        pendingNodes = [];
       }
       pages.push(currentPage);
       sectionStack.length = 0;
@@ -91,78 +86,76 @@ function buildPages(entries: CommentEntry[]): Page[] {
     }
 
     if (entry.type === "section") {
-      // Pop stack until we find a parent with less indent
       while (sectionStack.length > 0 && sectionStack[sectionStack.length - 1].indent >= entry.indent) {
         sectionStack.pop();
       }
 
-      // Build section path for ID: pageTitle/parent1/parent2/.../sectionTitle
       const sectionPath = [
         currentPageTitle,
         ...sectionStack.map(stackEntry => stackEntry.title),
         entry.text,
       ].join("/");
 
-      const section: Section = {
+      const sectionNode: SectionNode = {
+        type: "section",
         id: generateId(sectionPath),
         title: entry.text,
       };
 
       if (sectionStack.length > 0) {
-        const parentSection = sectionStack[sectionStack.length - 1].section;
-        if (!parentSection.sections) parentSection.sections = [];
-        parentSection.sections.push(section);
+        const parentSection = sectionStack[sectionStack.length - 1].sectionNode;
+        if (!parentSection.children) parentSection.children = [];
+        parentSection.children.push(sectionNode);
       } else if (currentPage) {
-        if (!currentPage.sections) currentPage.sections = [];
-        currentPage.sections.push(section);
+        if (!currentPage.children) currentPage.children = [];
+        currentPage.children.push(sectionNode);
       }
 
-      sectionStack.push({ section, indent: entry.indent, title: entry.text });
+      sectionStack.push({ sectionNode, indent: entry.indent, title: entry.text });
       continue;
     }
 
-    if (entry.type === "step") {
-      const step: Step = { text: entry.text };
-      if (sectionStack.length > 0) {
-        const currentSection = sectionStack[sectionStack.length - 1].section;
-        if (!currentSection.steps) currentSection.steps = [];
-        currentSection.steps.push(step);
-      }
-      continue;
-    }
+    // Convert entry to Node
+    const node = entryToNode(entry);
+    if (!node) continue;
 
-    // Attributes: summary, why, see, image, graph
-    const attr: Attribute = { type: entry.type as Attribute["type"] };
-    if (entry.type === "see") {
-      attr.ref = entry.text;
-    } else {
-      attr.text = entry.text;
-    }
-
-    // Look ahead: if a [spekta:page] follows, this attribute belongs to the next page
+    // Look ahead: if a [spekta:page] follows, this node belongs to the next page
     let hasUpcomingPage = false;
     for (let j = entries.indexOf(entry) + 1; j < entries.length; j++) {
       if (entries[j].type === "page") { hasUpcomingPage = true; break; }
       if (entries[j].type === "section" || entries[j].type === "step") break;
     }
     if (hasUpcomingPage) {
-      pendingAttrs.push(attr);
+      pendingNodes.push(node);
       continue;
     }
 
+    // Attach to most recent section, or page
     if (sectionStack.length > 0) {
-      const currentSection = sectionStack[sectionStack.length - 1].section;
-      if (!currentSection.attributes) currentSection.attributes = [];
-      currentSection.attributes.push(attr);
+      const currentSection = sectionStack[sectionStack.length - 1].sectionNode;
+      if (!currentSection.children) currentSection.children = [];
+      currentSection.children.push(node);
     } else if (currentPage) {
-      if (!currentPage.attributes) currentPage.attributes = [];
-      currentPage.attributes.push(attr);
+      if (!currentPage.children) currentPage.children = [];
+      currentPage.children.push(node);
     } else {
-      pendingAttrs.push(attr);
+      pendingNodes.push(node);
     }
   }
 
   return pages;
+}
+
+function entryToNode(entry: CommentEntry): Node | null {
+  switch (entry.type) {
+    case "summary": return { type: "summary", text: entry.text };
+    case "why": return { type: "why", text: entry.text };
+    case "see": return { type: "see", ref: entry.text };
+    case "step": return { type: "step", text: entry.text };
+    case "image": return { type: "image", path: entry.text };
+    case "graph": return { type: "graph", text: entry.text };
+    default: return null;
+  }
 }
 
 /**
@@ -179,33 +172,22 @@ export function parseFiles(filePaths: string[]): { pages: Page[]; fileToPages: M
   }
 
   const mergedPages = mergePages(allPages);
-
   return { pages: mergedPages, fileToPages };
 }
 
-/**
- * Merge pages with the same ID (same [spekta:page] title).
- * Sections with the same ID (same path) are also merged recursively.
- */
 function mergePages(pages: Page[]): Page[] {
   const pageMap = new Map<string, Page>();
 
   for (const page of pages) {
     const existingPage = pageMap.get(page.id);
     if (!existingPage) {
-      pageMap.set(page.id, { ...page, sections: page.sections ? [...page.sections] : undefined });
+      pageMap.set(page.id, { ...page, children: page.children ? [...page.children] : undefined });
       continue;
     }
-    // Merge attributes (keep existing, add new)
-    if (page.attributes) {
-      if (!existingPage.attributes) existingPage.attributes = [];
-      existingPage.attributes.push(...page.attributes);
-    }
-    // Merge sections
-    if (page.sections) {
-      if (!existingPage.sections) existingPage.sections = [];
-      for (const newSection of page.sections) {
-        mergeSectionInto(existingPage.sections, newSection);
+    if (page.children) {
+      if (!existingPage.children) existingPage.children = [];
+      for (const newChild of page.children) {
+        mergeNodeInto(existingPage.children, newChild);
       }
     }
   }
@@ -213,27 +195,26 @@ function mergePages(pages: Page[]): Page[] {
   return Array.from(pageMap.values());
 }
 
-function mergeSectionInto(existingSections: Section[], newSection: Section): void {
-  const existingSection = existingSections.find(section => section.id === newSection.id);
-  if (!existingSection) {
-    existingSections.push(newSection);
+function mergeNodeInto(existingChildren: Node[], newNode: Node): void {
+  if (newNode.type !== "section") {
+    existingChildren.push(newNode);
     return;
   }
-  // Merge attributes
-  if (newSection.attributes) {
-    if (!existingSection.attributes) existingSection.attributes = [];
-    existingSection.attributes.push(...newSection.attributes);
+
+  const existingSection = existingChildren.find(
+    (child): child is SectionNode => child.type === "section" && child.id === newNode.id
+  );
+
+  if (!existingSection) {
+    existingChildren.push(newNode);
+    return;
   }
-  // Merge steps
-  if (newSection.steps) {
-    if (!existingSection.steps) existingSection.steps = [];
-    existingSection.steps.push(...newSection.steps);
-  }
-  // Merge nested sections recursively
-  if (newSection.sections) {
-    if (!existingSection.sections) existingSection.sections = [];
-    for (const childSection of newSection.sections) {
-      mergeSectionInto(existingSection.sections, childSection);
+
+  // Merge children of matching sections
+  if (newNode.children) {
+    if (!existingSection.children) existingSection.children = [];
+    for (const childNode of newNode.children) {
+      mergeNodeInto(existingSection.children, childNode);
     }
   }
 }

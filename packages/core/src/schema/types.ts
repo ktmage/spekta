@@ -1,10 +1,16 @@
-// Re-export IR types from schema.ts
+// Re-export IR types
 export type {
-  Step,
-  Attribute,
-  Section,
+  Node,
+  SectionNode,
+  StepNode,
+  SummaryNode,
+  WhyNode,
+  SeeNode,
+  ImageNode,
+  GraphNode,
   Page,
   IR as BehaviorIR,
 } from "./ir.js";
 
+// Re-export config type
 export type { SpektaConfig } from "./config.js";

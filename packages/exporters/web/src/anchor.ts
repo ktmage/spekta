@@ -1,41 +1,35 @@
-import type { Page, Section } from "@ktmage/spekta";
+import type { Page, Node, SectionNode } from "@ktmage/spekta";
+import { getSections } from "./ir-helpers.js";
 
-/**
- * Generate page URL path: /{type}/{title}/
- */
 export function pageUrlPath(page: Page): string {
   return `/${page.type}/${page.title}/`;
 }
 
-/**
- * Generate GitHub-style anchor IDs for all sections in a page.
- * Duplicate titles get -1, -2, etc. appended.
- */
 export function buildAnchorMap(page: Page): Map<string, string> {
   const anchorMap = new Map<string, string>();
   const usedAnchors = new Map<string, number>();
 
-  if (page.sections) {
-    collectAnchors(page.sections, anchorMap, usedAnchors);
-  }
+  collectAnchors(page.children, anchorMap, usedAnchors);
 
   return anchorMap;
 }
 
 function collectAnchors(
-  sections: Section[],
+  children: Node[] | undefined,
   anchorMap: Map<string, string>,
   usedAnchors: Map<string, number>,
 ): void {
-  for (const section of sections) {
-    const baseAnchor = section.title;
+  if (!children) return;
+  for (const node of children) {
+    if (node.type !== "section") continue;
+    const baseAnchor = node.title;
     const count = usedAnchors.get(baseAnchor) ?? 0;
     const anchor = count === 0 ? baseAnchor : `${baseAnchor}-${count}`;
     usedAnchors.set(baseAnchor, count + 1);
-    anchorMap.set(section.id, anchor);
+    anchorMap.set(node.id, anchor);
 
-    if (section.sections) {
-      collectAnchors(section.sections, anchorMap, usedAnchors);
+    if (node.children) {
+      collectAnchors(node.children, anchorMap, usedAnchors);
     }
   }
 }

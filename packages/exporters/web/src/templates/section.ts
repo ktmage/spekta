@@ -1,10 +1,11 @@
 import * as path from "node:path";
-import type { Page, Section } from "@ktmage/spekta";
+import type { Page, SectionNode } from "@ktmage/spekta";
 import { escapeHtml } from "../html.js";
 import { pageUrlPath } from "../anchor.js";
+import { findNode, filterNodes, getSections } from "../ir-helpers.js";
 
 export function renderSection(
-  section: Section,
+  sectionNode: SectionNode,
   depth: number,
   allPages: Page[],
   pageById: Map<string, Page>,
@@ -14,28 +15,30 @@ export function renderSection(
   const depthClass = `spec-group--depth-${Math.min(depth, 4)}`;
   const headingLevel = Math.min(depth + 1, 5);
   const headingTag = `h${headingLevel}`;
-  const sectionAnchor = anchorMap.get(section.id) ?? section.title;
+  const sectionAnchor = anchorMap.get(sectionNode.id) ?? sectionNode.title;
 
-  const summaryAttr = section.attributes?.find((a) => a.type === "summary");
-  const whyAttr = section.attributes?.find((a) => a.type === "why");
-  const seeAttrs = section.attributes?.filter((a) => a.type === "see") ?? [];
-  const imageAttr = section.attributes?.find((a) => a.type === "image");
-  const graphAttr = section.attributes?.find((a) => a.type === "graph");
+  const summaryNode = findNode(sectionNode.children, "summary");
+  const whyNode = findNode(sectionNode.children, "why");
+  const seeNodes = filterNodes(sectionNode.children, "see");
+  const imageNode = findNode(sectionNode.children, "image");
+  const graphNode = findNode(sectionNode.children, "graph");
+  const stepNodes = filterNodes(sectionNode.children, "step");
+  const childSections = getSections(sectionNode.children);
 
   const parts: string[] = [];
 
   parts.push(`<div class="spec-group ${depthClass}" id="${escapeHtml(sectionAnchor)}">`);
   parts.push(`  <div class="spec-group__header">`);
-  parts.push(`    <${headingTag} class="spec-group__heading">${escapeHtml(section.title)}</${headingTag}>`);
+  parts.push(`    <${headingTag} class="spec-group__heading">${escapeHtml(sectionNode.title)}</${headingTag}>`);
 
-  if (summaryAttr?.text) {
-    parts.push(`    <p class="spec-group__summary">${escapeHtml(summaryAttr.text)}</p>`);
+  if (summaryNode) {
+    parts.push(`    <p class="spec-group__summary">${escapeHtml(summaryNode.text)}</p>`);
   }
 
-  if (seeAttrs.length > 0) {
-    const links = seeAttrs
-      .map((attr) => {
-        const refPage = pageById.get(attr.ref ?? "");
+  if (seeNodes.length > 0) {
+    const links = seeNodes
+      .map((seeNode) => {
+        const refPage = pageById.get(seeNode.ref);
         if (!refPage) return "";
         return `<a href="${escapeHtml(pageUrlPath(refPage))}" class="spec-group__related-link">${escapeHtml(refPage.title)}</a>`;
       })
@@ -51,38 +54,38 @@ export function renderSection(
 
   parts.push(`  </div>`);
 
-  if (whyAttr?.text) {
+  if (whyNode) {
     parts.push(`  <div class="spec-callout--why">`);
     parts.push(`    <div class="spec-callout__label">なぜ？</div>`);
-    parts.push(`    <div class="spec-callout__text">${escapeHtml(whyAttr.text)}</div>`);
+    parts.push(`    <div class="spec-callout__text">${escapeHtml(whyNode.text)}</div>`);
     parts.push(`  </div>`);
   }
 
-  if (imageAttr?.text) {
-    imagePaths.push(imageAttr.text);
-    const filename = path.basename(imageAttr.text);
+  if (imageNode) {
+    imagePaths.push(imageNode.path);
+    const filename = path.basename(imageNode.path);
     parts.push(`  <div class="spec-image">`);
-    parts.push(`    <img src="/images/${escapeHtml(filename)}" alt="${escapeHtml(section.title)}" />`);
+    parts.push(`    <img src="/images/${escapeHtml(filename)}" alt="${escapeHtml(sectionNode.title)}" />`);
     parts.push(`  </div>`);
   }
 
-  if (graphAttr?.text) {
+  if (graphNode) {
     parts.push(`  <div class="spec-graph">`);
-    parts.push(`    <div class="mermaid">${escapeHtml(graphAttr.text)}</div>`);
+    parts.push(`    <div class="mermaid">${escapeHtml(graphNode.text)}</div>`);
     parts.push(`  </div>`);
   }
 
-  if (section.steps && section.steps.length > 0) {
+  if (stepNodes.length > 0) {
     parts.push(`  <ol class="spec-example__steps">`);
-    for (const step of section.steps) {
-      parts.push(`    <li>${escapeHtml(step.text)}</li>`);
+    for (const stepNode of stepNodes) {
+      parts.push(`    <li>${escapeHtml(stepNode.text)}</li>`);
     }
     parts.push(`  </ol>`);
   }
 
-  if (section.sections && section.sections.length > 0) {
+  if (childSections.length > 0) {
     parts.push(`  <div class="spec-group__children">`);
-    for (const childSection of section.sections) {
+    for (const childSection of childSections) {
       parts.push(renderSection(childSection, depth + 1, allPages, pageById, imagePaths, anchorMap));
     }
     parts.push(`  </div>`);

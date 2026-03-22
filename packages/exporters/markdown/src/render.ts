@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { IR, Page, Section, Attribute, Step } from "@ktmage/spekta";
+import type { IR, Page, Node, SectionNode } from "@ktmage/spekta";
 
 export function renderMarkdown(ir: IR, outputPath: string): void {
   fs.mkdirSync(outputPath, { recursive: true });
@@ -30,33 +30,70 @@ export function renderMarkdown(ir: IR, outputPath: string): void {
   }
 }
 
-function renderPage(
-  page: Page,
-  pageById: Map<string, Page>,
-  imagePaths: string[],
-): string {
+function renderPage(page: Page, pageById: Map<string, Page>, imagePaths: string[]): string {
   const lines: string[] = [];
-  const displayTitle = page.sections?.[0]?.title ?? page.title;
+  const firstSection = page.children?.find((node): node is SectionNode => node.type === "section");
+  const displayTitle = firstSection?.title ?? page.title;
 
   lines.push(`# ${displayTitle}`);
   lines.push("");
 
-  if (page.attributes) {
-    renderAttributes(lines, page.attributes, pageById, imagePaths);
-  }
-
-  if (page.sections) {
-    for (const section of page.sections) {
-      renderSection(lines, section, 2, pageById, imagePaths);
-    }
+  if (page.children) {
+    renderNodes(lines, page.children, 2, pageById, imagePaths);
   }
 
   return lines.join("\n");
 }
 
-function renderSection(
+function renderNodes(
   lines: string[],
-  section: Section,
+  nodes: Node[],
+  headingDepth: number,
+  pageById: Map<string, Page>,
+  imagePaths: string[],
+): void {
+  for (const node of nodes) {
+    switch (node.type) {
+      case "summary":
+        lines.push(node.text);
+        lines.push("");
+        break;
+      case "why":
+        lines.push(`> **なぜ**: ${node.text}`);
+        lines.push("");
+        break;
+      case "see": {
+        const refPage = pageById.get(node.ref);
+        if (refPage) {
+          lines.push(`関連: [${refPage.title}](${refPage.title}.md)`);
+          lines.push("");
+        }
+        break;
+      }
+      case "image":
+        imagePaths.push(node.path);
+        lines.push(`![${path.basename(node.path)}](images/${path.basename(node.path)})`);
+        lines.push("");
+        break;
+      case "graph":
+        lines.push("```mermaid");
+        lines.push(node.text);
+        lines.push("```");
+        lines.push("");
+        break;
+      case "step":
+        // Steps are collected and rendered as numbered list per section
+        break;
+      case "section":
+        renderSectionNode(lines, node, headingDepth, pageById, imagePaths);
+        break;
+    }
+  }
+}
+
+function renderSectionNode(
+  lines: string[],
+  sectionNode: SectionNode,
   depth: number,
   pageById: Map<string, Page>,
   imagePaths: string[],
@@ -64,78 +101,35 @@ function renderSection(
   const headingLevel = Math.min(depth, 4);
   const headingPrefix = "#".repeat(headingLevel);
 
-  lines.push(`${headingPrefix} ${section.title}`);
+  lines.push(`${headingPrefix} ${sectionNode.title}`);
   lines.push("");
 
-  if (section.attributes) {
-    renderAttributes(lines, section.attributes, pageById, imagePaths);
-  }
+  if (sectionNode.children) {
+    // Render non-step, non-section nodes first
+    const nonStepNodes = sectionNode.children.filter(
+      (node) => node.type !== "step" && node.type !== "section"
+    );
+    renderNodes(lines, nonStepNodes, depth + 1, pageById, imagePaths);
 
-  if (section.steps && section.steps.length > 0) {
-    renderSteps(lines, section.steps);
-  }
+    // Render steps as numbered list
+    const stepNodes = sectionNode.children.filter(
+      (node): node is Extract<Node, { type: "step" }> => node.type === "step"
+    );
+    if (stepNodes.length > 0) {
+      for (let stepIndex = 0; stepIndex < stepNodes.length; stepIndex++) {
+        lines.push(`${stepIndex + 1}. ${stepNodes[stepIndex].text}`);
+      }
+      lines.push("");
+    }
 
-  if (section.sections) {
-    for (const childSection of section.sections) {
-      renderSection(lines, childSection, depth + 1, pageById, imagePaths);
+    // Render child sections
+    const childSections = sectionNode.children.filter(
+      (node): node is SectionNode => node.type === "section"
+    );
+    for (const childSection of childSections) {
+      renderSectionNode(lines, childSection, depth + 1, pageById, imagePaths);
     }
   }
-}
-
-function renderAttributes(
-  lines: string[],
-  attributes: Attribute[],
-  pageById: Map<string, Page>,
-  imagePaths: string[],
-): void {
-  for (const attr of attributes) {
-    switch (attr.type) {
-      case "summary":
-        if (attr.text) {
-          lines.push(attr.text);
-          lines.push("");
-        }
-        break;
-      case "why":
-        if (attr.text) {
-          lines.push(`> **なぜ**: ${attr.text}`);
-          lines.push("");
-        }
-        break;
-      case "see":
-        if (attr.ref) {
-          const refPage = pageById.get(attr.ref);
-          if (refPage) {
-            lines.push(`関連: [${refPage.title}](${refPage.title}.md)`);
-            lines.push("");
-          }
-        }
-        break;
-      case "image":
-        if (attr.text) {
-          imagePaths.push(attr.text);
-          const filename = path.basename(attr.text);
-          lines.push(`![${filename}](images/${filename})`);
-          lines.push("");
-        }
-        break;
-      case "graph":
-        if (attr.text) {
-          lines.push("```mermaid");
-          lines.push(attr.text);
-          lines.push("```");
-          lines.push("");
-        }
-        break;
-    }
-  }
-}
-
-function renderSteps(lines: string[], steps: Step[]): void {
-  for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
-    lines.push(`${stepIndex + 1}. ${steps[stepIndex].text}`);
-  }
-  lines.push("");
 }
 
 // ExporterPlugin interface

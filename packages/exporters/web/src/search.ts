@@ -1,4 +1,4 @@
-import type { Page, Section } from "@ktmage/spekta";
+import type { Page, Node, SectionNode } from "@ktmage/spekta";
 
 export interface SearchEntry {
   pageId: string;
@@ -11,8 +11,8 @@ export function collectSearchEntries(pages: Page[]): SearchEntry[] {
   const searchEntries: SearchEntry[] = [];
   for (const page of pages) {
     searchEntries.push({ pageId: page.id, pageTitle: page.title });
-    if (page.sections) {
-      collectSectionsForSearch(page.id, page.title, page.sections, searchEntries);
+    if (page.children) {
+      collectSectionsForSearch(page.id, page.title, page.children, searchEntries);
     }
   }
   return searchEntries;
@@ -21,18 +21,19 @@ export function collectSearchEntries(pages: Page[]): SearchEntry[] {
 function collectSectionsForSearch(
   pageId: string,
   pageTitle: string,
-  sections: Section[],
+  children: Node[],
   searchEntries: SearchEntry[],
 ): void {
-  for (const section of sections) {
+  for (const node of children) {
+    if (node.type !== "section") continue;
     searchEntries.push({
       pageId,
       pageTitle,
-      sectionTitle: section.title,
-      sectionId: section.id,
+      sectionTitle: node.title,
+      sectionId: node.id,
     });
-    if (section.sections) {
-      collectSectionsForSearch(pageId, pageTitle, section.sections, searchEntries);
+    if (node.children) {
+      collectSectionsForSearch(pageId, pageTitle, node.children, searchEntries);
     }
   }
 }

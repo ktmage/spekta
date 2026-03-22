@@ -1,7 +1,8 @@
 import * as path from "node:path";
-import type { Page } from "@ktmage/spekta";
+import type { Page, Node } from "@ktmage/spekta";
 import { escapeHtml } from "../html.js";
 import { pageUrlPath } from "../anchor.js";
+import { findNode, filterNodes, getSections, getDisplayTitle } from "../ir-helpers.js";
 import { renderSection } from "./section.js";
 
 export function renderPageContent(
@@ -12,24 +13,25 @@ export function renderPageContent(
   anchorMap: Map<string, string>,
 ): string {
   const parts: string[] = [];
-  const displayTitle = page.sections?.[0]?.title ?? page.title;
+  const displayTitle = getDisplayTitle(page);
 
   parts.push(`<div class="spec-content">`);
   parts.push(`  <h1 class="spec-content__title">${escapeHtml(displayTitle)}</h1>`);
 
-  const summaryAttr = page.attributes?.find((a) => a.type === "summary");
-  const seeRefs = page.attributes?.filter((a) => a.type === "see") ?? [];
-  const imageAttr = page.attributes?.find((a) => a.type === "image");
-  const graphAttr = page.attributes?.find((a) => a.type === "graph");
+  const summaryNode = findNode(page.children, "summary");
+  const seeNodes = filterNodes(page.children, "see");
+  const imageNode = findNode(page.children, "image");
+  const graphNode = findNode(page.children, "graph");
+  const sectionNodes = getSections(page.children);
 
-  if (summaryAttr?.text) {
-    parts.push(`  <p class="spec-content__summary">${escapeHtml(summaryAttr.text)}</p>`);
+  if (summaryNode) {
+    parts.push(`  <p class="spec-content__summary">${escapeHtml(summaryNode.text)}</p>`);
   }
 
-  if (seeRefs.length > 0) {
-    const links = seeRefs
-      .map((attr) => {
-        const refPage = pageById.get(attr.ref ?? "");
+  if (seeNodes.length > 0) {
+    const links = seeNodes
+      .map((seeNode) => {
+        const refPage = pageById.get(seeNode.ref);
         if (!refPage) return "";
         return `<a href="${escapeHtml(pageUrlPath(refPage))}" class="spec-content__related-link">${escapeHtml(refPage.title)}</a>`;
       })
@@ -43,24 +45,24 @@ export function renderPageContent(
     }
   }
 
-  if (imageAttr?.text) {
-    imagePaths.push(imageAttr.text);
-    const filename = path.basename(imageAttr.text);
+  if (imageNode) {
+    imagePaths.push(imageNode.path);
+    const filename = path.basename(imageNode.path);
     parts.push(`  <div class="spec-image">`);
     parts.push(`    <img src="/images/${escapeHtml(filename)}" alt="${escapeHtml(displayTitle)}" />`);
     parts.push(`  </div>`);
   }
 
-  if (graphAttr?.text) {
+  if (graphNode) {
     parts.push(`  <div class="spec-graph">`);
-    parts.push(`    <div class="mermaid">${escapeHtml(graphAttr.text)}</div>`);
+    parts.push(`    <div class="mermaid">${escapeHtml(graphNode.text)}</div>`);
     parts.push(`  </div>`);
   }
 
-  if (page.sections && page.sections.length > 0) {
+  if (sectionNodes.length > 0) {
     parts.push(`  <div class="spec-content__body">`);
-    for (const section of page.sections) {
-      parts.push(renderSection(section, 1, allPages, pageById, imagePaths, anchorMap));
+    for (const sectionNode of sectionNodes) {
+      parts.push(renderSection(sectionNode, 1, allPages, pageById, imagePaths, anchorMap));
     }
     parts.push(`  </div>`);
   }

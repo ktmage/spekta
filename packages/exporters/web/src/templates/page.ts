@@ -3,6 +3,7 @@ import * as path from "node:path";
 import type { Page } from "@ktmage/spekta";
 import { escapeHtml } from "../html.js";
 import { pageUrlPath, buildAnchorMap } from "../anchor.js";
+import { getDisplayTitle } from "../ir-helpers.js";
 import type { SearchEntry } from "../search.js";
 import type { SiteInfo } from "./header.js";
 import { renderSiteHeader } from "./header.js";
@@ -26,7 +27,7 @@ export function renderPageHtml(
   const inlineJs = loadAsset("client.js");
 
   const siteName = siteInfo.name || "Spekta";
-  const displayTitle = page.sections?.[0]?.title ?? page.title;
+  const displayTitle = getDisplayTitle(page);
   const htmlTitle = `${escapeHtml(displayTitle)} - ${escapeHtml(siteName)}`;
 
   const anchorMap = buildAnchorMap(page);
