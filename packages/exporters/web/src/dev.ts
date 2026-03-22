@@ -4,7 +4,7 @@ import { startDevServer } from "./dev-server.js";
 import type { SpektaConfig } from "@ktmage/spekta/types";
 
 const DEFAULT_PORT = 4321;
-const DEBOUNCE_MS = 500;
+const DEFAULT_DEBOUNCE_MS = 500;
 
 export async function dev(config: SpektaConfig): Promise<void> {
   const { build, render } = await import("@ktmage/spekta/commands");
@@ -12,6 +12,8 @@ export async function dev(config: SpektaConfig): Promise<void> {
   const targetDir = path.resolve(config.target_dir);
   const outputDir = findOutputDir(config);
   const webExporterConfig = findWebExporterConfig(config);
+  const port = typeof webExporterConfig?.port === "number" ? webExporterConfig.port : DEFAULT_PORT;
+  const debounceMs = typeof webExporterConfig?.debounce === "number" ? webExporterConfig.debounce : DEFAULT_DEBOUNCE_MS;
   const autoComplete = webExporterConfig?.auto_complete === true;
 
   if (autoComplete) {
@@ -26,7 +28,7 @@ export async function dev(config: SpektaConfig): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 1000));
   isRebuilding = false;
 
-  const devServer = startDevServer(outputDir, DEFAULT_PORT);
+  const devServer = startDevServer(outputDir, port);
 
   console.log(`Watching: ${targetDir}`);
 
@@ -55,7 +57,7 @@ export async function dev(config: SpektaConfig): Promise<void> {
       } finally {
         setTimeout(() => { isRebuilding = false; }, 1000);
       }
-    }, DEBOUNCE_MS);
+    }, debounceMs);
   };
 
   const fileWatcher = fs.watch(targetDir, { recursive: true }, (_event, filename) => {
