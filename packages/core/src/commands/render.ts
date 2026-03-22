@@ -1,7 +1,7 @@
 import * as path from "node:path";
 import type { SpektaConfig, BehaviorIR, SiteInfo } from "../schema/types.js";
 import { parseFiles } from "../core/parser.js";
-import { resolveRefs, buildTitleToIdMap } from "../core/resolve-refs.js";
+import { resolveRefs, buildPageTitleToIdMap } from "../core/resolve-refs.js";
 import { collectFiles, collectAllFiles } from "../core/files.js";
 
 export interface RenderOptions {
@@ -41,7 +41,7 @@ export async function render(config: SpektaConfig, options: RenderOptions): Prom
 
   console.log(`Found ${pages.length} page(s).`);
 
-  const titleToId = buildTitleToIdMap(pages);
+  const titleToId = buildPageTitleToIdMap(pages);
   resolveRefs(pages, fileToPages, titleToId);
 
   const ir: BehaviorIR = { version: "1.0.0", pages };

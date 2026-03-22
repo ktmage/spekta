@@ -3,7 +3,7 @@ import type { Page, Section, Attribute } from "../schema/types.js";
 /**
  * Build a mapping from page title to page ID for all pages.
  */
-export function buildTitleToIdMap(pages: Page[]): Map<string, string> {
+export function buildPageTitleToIdMap(pages: Page[]): Map<string, string> {
   const map = new Map<string, string>();
   for (const page of pages) {
     map.set(page.title, page.id);
