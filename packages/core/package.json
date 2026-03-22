@@ -6,7 +6,7 @@
     "spekta": "./bin/spekta.js"
   },
   "exports": {
-    ".": "./dist/schema/schema.js",
+    ".": "./dist/schema/ir.js",
     "./plugin": "./dist/schema/plugin.js",
     "./commands": "./dist/commands/exports.js"
   },

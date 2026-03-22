@@ -1,4 +1,4 @@
-import type { IR } from "./schema.js";
+import type { IR } from "./ir.js";
 import type { SpektaConfig } from "./types.js";
 
 // --- Annotator Plugin ---

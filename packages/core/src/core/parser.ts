@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as crypto from "node:crypto";
-import type { Page, Section, Attribute, Step } from "../schema/schema.js";
+import type { Page, Section, Attribute, Step } from "../schema/ir.js";
 
 const SPEKTA_PATTERN = /^(\s*)(?:\/\/|#)\s*\[spekta:(\w+)\]\s*(.*)/;
 
