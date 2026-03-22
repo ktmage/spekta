@@ -116,7 +116,7 @@ function buildPages(entries: CommentEntry[]): Page[] {
     }
 
     // Convert entry to Node
-    const node = entryToNode(entry);
+    const node = entryToNode(entry, currentPageTitle);
     if (!node) continue;
 
     // Look ahead: if a [spekta:page] follows, this node belongs to the next page
@@ -146,14 +146,15 @@ function buildPages(entries: CommentEntry[]): Page[] {
   return pages;
 }
 
-function entryToNode(entry: CommentEntry): Node | null {
+function entryToNode(entry: CommentEntry, pageTitle: string): Node | null {
+  const nodeId = generateId(`${pageTitle}/${entry.type}/${entry.line}`);
   switch (entry.type) {
-    case "summary": return { type: "summary", text: entry.text };
-    case "why": return { type: "why", text: entry.text };
-    case "see": return { type: "see", ref: generateId(entry.text) };
-    case "step": return { type: "step", text: entry.text };
-    case "image": return { type: "image", path: entry.text };
-    case "graph": return { type: "graph", text: entry.text };
+    case "summary": return { type: "summary", id: nodeId, text: entry.text };
+    case "why": return { type: "why", id: nodeId, text: entry.text };
+    case "see": return { type: "see", id: nodeId, ref: generateId(entry.text) };
+    case "step": return { type: "step", id: nodeId, text: entry.text };
+    case "image": return { type: "image", id: nodeId, path: entry.text };
+    case "graph": return { type: "graph", id: nodeId, text: entry.text };
     default: return null;
   }
 }

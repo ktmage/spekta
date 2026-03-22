@@ -3,35 +3,41 @@ import { z } from "zod/v4";
 const sha256Id = z.string().regex(/^[0-9a-f]{64}$/, "ID must be a SHA256 hex string");
 
 // --- Node: IR のすべての要素は Node ---
-// type ごとに持つフィールドが異なる。children で再帰的にネストできる。
+// 全 Node が id を持つ。type ごとに追加フィールドが異なる。
 
 const summaryNodeSchema = z.object({
   type: z.literal("summary"),
+  id: sha256Id,
   text: z.string(),
 });
 
 const whyNodeSchema = z.object({
   type: z.literal("why"),
+  id: sha256Id,
   text: z.string(),
 });
 
 const seeNodeSchema = z.object({
   type: z.literal("see"),
+  id: sha256Id,
   ref: sha256Id,
 });
 
 const stepNodeSchema = z.object({
   type: z.literal("step"),
+  id: sha256Id,
   text: z.string(),
 });
 
 const imageNodeSchema = z.object({
   type: z.literal("image"),
+  id: sha256Id,
   path: z.string(),
 });
 
 const graphNodeSchema = z.object({
   type: z.literal("graph"),
+  id: sha256Id,
   text: z.string(),
 });
 
@@ -43,7 +49,6 @@ export interface SectionNodeInput {
   children?: NodeInput[];
 }
 
-// Node の union（section は再帰のため lazy で定義）
 type LeafNode = z.infer<typeof summaryNodeSchema>
   | z.infer<typeof whyNodeSchema>
   | z.infer<typeof seeNodeSchema>
@@ -90,7 +95,6 @@ export type SectionNode = SectionNodeInput;
 export type Page = z.infer<typeof pageSchema>;
 export type IR = z.infer<typeof irSchema>;
 
-// Convenience type aliases for specific node types
 export type SummaryNode = z.infer<typeof summaryNodeSchema>;
 export type WhyNode = z.infer<typeof whyNodeSchema>;
 export type SeeNode = z.infer<typeof seeNodeSchema>;
