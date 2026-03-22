@@ -21,3 +21,24 @@ export function collectFiles(dir: string, extensions: string[]): string[] {
 
   return files.sort();
 }
+
+/**
+ * Recursively collect all files from a directory.
+ */
+export function collectAllFiles(dir: string): string[] {
+  if (!fs.existsSync(dir)) return [];
+
+  const files: string[] = [];
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory() && entry.name !== "node_modules") {
+      files.push(...collectAllFiles(fullPath));
+    } else if (entry.isFile()) {
+      files.push(fullPath);
+    }
+  }
+
+  return files.sort();
+}

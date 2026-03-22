@@ -1,7 +1,7 @@
 import { describe, it } from "vitest";
 
 // [spekta:page] 検索
-// [spekta:summary] キーワードや条件で検索する機能。
+// [spekta:summary] キーワードや条件で検索する機能。【テスト更新】【テスト更新】【テスト更新】【テスト更新】
 describe("検索", () => {
   // [spekta:section] データが存在する場合
   describe("データが存在する場合", () => {

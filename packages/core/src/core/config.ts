@@ -22,6 +22,8 @@ export function loadConfig(root?: string): SpektaConfig {
 
   const raw = rawConfig as Record<string, unknown>;
   const targetDir = typeof raw.target_dir === "string" ? raw.target_dir : "spec/";
+  const include = Array.isArray(raw.include) ? raw.include as string[] : undefined;
+  const exclude = Array.isArray(raw.exclude) ? raw.exclude as string[] : undefined;
   const defaultName = path.basename(projectRoot);
 
   // --- Annotator (new format) ---
@@ -68,6 +70,8 @@ export function loadConfig(root?: string): SpektaConfig {
 
   return {
     target_dir: targetDir,
+    include,
+    exclude,
     annotator: annotatorRaw as SpektaConfig["annotator"],
     exporter: exporterRaw as SpektaConfig["exporter"],
     analyzer: {

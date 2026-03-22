@@ -1,8 +1,6 @@
 target_dir: test/
-
-analyzer:
-  vitest:
-    target_dir: test/
+include:
+  - ".test.ts"
 
 renderer:
   web:

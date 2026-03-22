@@ -1,10 +1,6 @@
 target_dir: spec/
-
-analyzer:
-  rspec:
-    spec_types:
-      - feature_spec
-      - system_spec
+include:
+  - "_spec.rb"
 
 renderer:
   web:

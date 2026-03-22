@@ -12,6 +12,8 @@ export type {
 
 export interface SpektaConfig {
   target_dir: string;
+  include?: string[];
+  exclude?: string[];
   // New format
   annotator?: Record<string, Record<string, unknown> | null>;
   exporter?: Record<string, Record<string, unknown> | null>;

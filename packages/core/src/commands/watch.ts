@@ -25,26 +25,19 @@ export async function watch(config: SpektaConfig): Promise<void> {
   // Start HTTP server
   const server = startServer(webPath);
 
-  // Watch target directories
-  const watchDirs: string[] = [];
-  if (config.analyzer.rspec) {
-    for (const t of config.analyzer.rspec.spec_types) {
-      const sub = t === "feature_spec" ? "features" : t === "system_spec" ? "system" : t;
-      const dir = path.join(targetDir, sub);
-      if (fs.existsSync(dir)) watchDirs.push(dir);
-    }
-  }
-  if (config.analyzer.vitest) {
-    const vitestDir = path.resolve(config.analyzer.vitest.target_dir ?? config.target_dir);
-    if (fs.existsSync(vitestDir)) watchDirs.push(vitestDir);
-  }
+  // Watch target directory
+  const includePatterns = config.include;
 
-  console.log(`Watching: ${watchDirs.join(", ")}`);
+  console.log(`Watching: ${targetDir}`);
 
   let buildTimer: ReturnType<typeof setTimeout> | null = null;
 
   const onFileChange = (filename: string | null): void => {
-    if (filename && !filename.endsWith("_spec.rb") && !filename.endsWith(".test.ts")) return;
+    // If include patterns are configured, filter by them
+    if (filename && includePatterns) {
+      const matchesInclude = includePatterns.some(pattern => filename.endsWith(pattern));
+      if (!matchesInclude) return;
+    }
     if (buildTimer) clearTimeout(buildTimer);
     buildTimer = setTimeout(async () => {
       console.log(`\nFile changed${filename ? `: ${filename}` : ""}. Rebuilding...`);
@@ -58,17 +51,13 @@ export async function watch(config: SpektaConfig): Promise<void> {
     }, 500);
   };
 
-  const watchers: fs.FSWatcher[] = [];
-  for (const dir of watchDirs) {
-    const w = fs.watch(dir, { recursive: true }, (_event, filename) => {
-      onFileChange(filename);
-    });
-    watchers.push(w);
-  }
+  const watcher = fs.watch(targetDir, { recursive: true }, (_event, filename) => {
+    onFileChange(filename);
+  });
 
   const cleanup = (): void => {
     console.log("\nShutting down...");
-    for (const w of watchers) w.close();
+    watcher.close();
     for (const res of sseClients) res.end();
     server.close();
     process.exit(0);
@@ -154,7 +143,7 @@ function startServer(webPath: string): http.Server {
 
   server.on("error", (err: NodeJS.ErrnoException) => {
     if (err.code === "EADDRINUSE") {
-      console.error(`Port ${DEFAULT_PORT} is already in use. Kill the existing process or use a different port.`);
+      console.error(`Port ${DEFAULT_PORT} is already in use.`);
       process.exit(1);
     }
     throw err;

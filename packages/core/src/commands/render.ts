@@ -2,9 +2,7 @@ import * as path from "node:path";
 import type { SpektaConfig, BehaviorIR, SiteInfo } from "../schema/types.js";
 import { parseFiles } from "../core/parser.js";
 import { resolveRefs, buildTitleToIdMap } from "../core/resolve-refs.js";
-import { collectFiles } from "../core/files.js";
-
-const TARGET_EXTENSIONS = [".test.ts", ".spec.ts", "_spec.rb"];
+import { collectFiles, collectAllFiles } from "../core/files.js";
 
 export interface RenderOptions {
   mode: "production" | "development";
@@ -20,16 +18,21 @@ export interface RenderOptions {
  */
 export async function render(config: SpektaConfig, options: RenderOptions): Promise<void> {
   const targetDir = path.resolve(config.target_dir);
-  const filePaths = collectFiles(targetDir, TARGET_EXTENSIONS);
+  const filePaths = config.include
+    ? collectFiles(targetDir, config.include)
+    : collectAllFiles(targetDir);
+  const filteredPaths = config.exclude
+    ? filePaths.filter(f => !config.exclude!.some(pattern => f.includes(pattern)))
+    : filePaths;
 
-  if (filePaths.length === 0) {
+  if (filteredPaths.length === 0) {
     console.warn("No test files found. Check your configuration.");
     return;
   }
 
-  console.log(`Parsing ${filePaths.length} test file(s)...`);
+  console.log(`Parsing ${filteredPaths.length} test file(s)...`);
 
-  const { pages, fileToPages } = parseFiles(filePaths);
+  const { pages, fileToPages } = parseFiles(filteredPaths);
 
   if (pages.length === 0) {
     console.warn("No [spekta:*] annotations found. Run 'spekta complete' first or add comments manually.");
