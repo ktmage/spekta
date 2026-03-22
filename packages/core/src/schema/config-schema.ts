@@ -6,14 +6,14 @@ const pluginOptionsSchema = z.record(z.string(), z.unknown()).nullable();
 
 // パッケージ名 → プラグイン設定 のマップ
 // 例: { "@ktmage/spekta-exporter-web": { name: "My Project" } }
-const pluginMapSchema = z.record(z.string(), pluginOptionsSchema).optional();
+const pluginMapSchema = z.record(z.string(), pluginOptionsSchema);
 
 export const spektaConfigSchema = z.object({
   target_dir: z.string(),
   include:    z.array(z.string()).optional(),
   exclude:    z.array(z.string()).optional(),
   annotator:  pluginMapSchema.optional(),
-  exporter:   pluginMapSchema,
+  exporter:   pluginMapSchema,            // 必須
 });
 
 export type SpektaConfig = z.infer<typeof spektaConfigSchema>;
