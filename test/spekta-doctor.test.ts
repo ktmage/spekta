@@ -17,8 +17,10 @@ function runDoctor(cwd: string): string {
   }
 }
 
+// [spekta:page] spekta doctor
 // [spekta:summary] プロジェクトの環境と設定を診断するコマンド。
 describe("spekta doctor", () => {
+  // [spekta:section] Node.js のバージョンを表示すること
   it("Node.js のバージョンを表示すること", () => {
     // [spekta:step] spekta doctor を実行する
     const output = runDoctor(process.cwd());
@@ -26,7 +28,9 @@ describe("spekta doctor", () => {
     expect(output).toContain("[+] Node.js:");
   });
 
+  // [spekta:section] プロジェクトディレクトリで実行した場合
   context("プロジェクトディレクトリで実行した場合", () => {
+    // [spekta:section] .spekta.yml が見つかること
     it(".spekta.yml が見つかること", () => {
       // [spekta:step] プロジェクトディレクトリで spekta doctor を実行する
       const output = runDoctor(rspecFixturesDir());
@@ -34,11 +38,12 @@ describe("spekta doctor", () => {
       expect(output).toContain("[+] .spekta.yml: found");
     });
 
-    it("spec ディレクトリが見つかること", () => {
+    // [spekta:section] target_dir が見つかること
+    it("target_dir が見つかること", () => {
       // [spekta:step] プロジェクトディレクトリで spekta doctor を実行する
       const output = runDoctor(rspecFixturesDir());
-      // [spekta:step] 出力に spec/features パスが含まれる
-      expect(output).toContain("spec/features");
+      // [spekta:step] 出力に target_dir のパスが含まれる
+      expect(output).toContain("[+] target_dir:");
     });
   });
 });

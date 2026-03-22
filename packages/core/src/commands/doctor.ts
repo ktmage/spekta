@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execSync } from "node:child_process";
+import { loadConfig } from "../core/config.js";
 
 export function doctor(): void {
   console.log("Spekta Doctor\n");
@@ -8,46 +8,7 @@ export function doctor(): void {
   let ok = true;
 
   ok = check("Node.js", () => {
-    const version = process.version;
-    return { ok: true, detail: version };
-  }) && ok;
-
-  ok = check("Ruby", () => {
-    try {
-      const version = execSync("ruby --version", { encoding: "utf-8" }).trim();
-      const match = version.match(/ruby (\d+)\.(\d+)/);
-      if (match) {
-        const major = parseInt(match[1]);
-        const minor = parseInt(match[2]);
-        if (major < 3 || (major === 3 && minor < 3)) {
-          return { ok: false, detail: `${version} (3.3+ required for Prism)` };
-        }
-      }
-      return { ok: true, detail: version };
-    } catch {
-      return { ok: false, detail: "not found" };
-    }
-  }) && ok;
-
-  ok = check("Bundler", () => {
-    try {
-      const version = execSync("bundle --version", { encoding: "utf-8" }).trim();
-      return { ok: true, detail: version };
-    } catch {
-      return { ok: false, detail: "not found" };
-    }
-  }) && ok;
-
-  ok = check("spekta-analyzer-rspec", () => {
-    try {
-      execSync("bundle exec ruby -e 'require \"spekta/analyzer_rspec\"'", {
-        encoding: "utf-8",
-        stdio: ["pipe", "pipe", "pipe"],
-      });
-      return { ok: true, detail: "installed" };
-    } catch {
-      return { ok: false, detail: "not found in Gemfile" };
-    }
+    return { ok: true, detail: process.version };
   }) && ok;
 
   ok = check(".spekta.yml", () => {
@@ -57,29 +18,59 @@ export function doctor(): void {
     return { ok: false, detail: "not found" };
   }) && ok;
 
-  ok = check("spec directory", () => {
-    const dirs = ["spec/features", "spec/system"];
-    const found = dirs.filter(d => fs.existsSync(d));
-    if (found.length > 0) {
-      return { ok: true, detail: found.join(", ") };
+  if (!fs.existsSync(".spekta.yml")) {
+    console.log("\n  .spekta.yml が見つかりません。以降のチェックをスキップします。");
+    process.exit(1);
+  }
+
+  const config = loadConfig();
+
+  ok = check("target_dir", () => {
+    const targetDir = path.resolve(config.target_dir);
+    if (fs.existsSync(targetDir)) {
+      return { ok: true, detail: targetDir };
     }
-    return { ok: false, detail: "no spec/features or spec/system found" };
+    return { ok: false, detail: `${targetDir} not found` };
   }) && ok;
 
-  ok = check("Pandoc (optional)", () => {
-    try {
-      const version = execSync("pandoc --version", { encoding: "utf-8" }).split("\n")[0];
-      return { ok: true, detail: version };
-    } catch {
-      return { ok: true, detail: "not installed (PDF output unavailable)" };
+  // Check annotator plugins
+  if (config.annotator) {
+    for (const annotatorName of Object.keys(config.annotator)) {
+      ok = check(`annotator: ${annotatorName}`, () => {
+        try {
+          const { createRequire } = require("node:module");
+          const localRequire = createRequire(path.resolve("package.json"));
+          localRequire.resolve(annotatorName);
+          return { ok: true, detail: "installed" };
+        } catch {
+          return { ok: false, detail: "not found. Run: bun add " + annotatorName };
+        }
+      }) && ok;
     }
-  }) && ok;
+  }
+
+  // Check exporter plugins
+  const exporterConfig = config.exporter ?? config.renderer;
+  if (exporterConfig) {
+    for (const exporterName of Object.keys(exporterConfig)) {
+      ok = check(`exporter: ${exporterName}`, () => {
+        const exporterDir = path.resolve(
+          import.meta.dirname ?? ".",
+          `../../../exporters/${exporterName}/dist/render.js`,
+        );
+        if (fs.existsSync(exporterDir)) {
+          return { ok: true, detail: "built" };
+        }
+        return { ok: false, detail: "not built. Run: cd packages/exporters/" + exporterName + " && bun run build" };
+      }) && ok;
+    }
+  }
 
   console.log("");
   if (ok) {
     console.log("All checks passed.");
   } else {
-    console.log("Some checks failed. Fix the issues above to use Spekta.");
+    console.log("Some checks failed. Fix the issues above.");
     process.exit(1);
   }
 }
