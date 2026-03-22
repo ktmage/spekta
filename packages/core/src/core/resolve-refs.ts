@@ -1,8 +1,5 @@
 import type { Page, Section, Attribute } from "../schema/types.js";
 
-/**
- * Build a mapping from page title to page ID for all pages.
- */
 export function buildPageTitleToIdMap(pages: Page[]): Map<string, string> {
   const map = new Map<string, string>();
   for (const page of pages) {
@@ -14,13 +11,12 @@ export function buildPageTitleToIdMap(pages: Page[]): Map<string, string> {
 /**
  * Resolve see references in the pages array.
  *
- * See attributes in the raw analyzer output have their text field set to
- * a file path reference like:
- *   - "spec/features/review_spec.rb"            (references all pages in file)
- *   - "spec/features/company_spec.rb:企業詳細ページ" (references a specific page by title)
+ * Parser sets attr.ref to the raw text from [spekta:see] comments, which can be:
+ *   - "spec/features/review_spec.rb"            (file path → first page in file)
+ *   - "spec/features/company_spec.rb:企業詳細ページ" (file path:title → page by title)
+ *   - "企業詳細ページ"                            (title only → page by title)
  *
- * After resolution, the text field is removed and replaced with a ref field
- * containing the target page's ID.
+ * After resolution, attr.ref is replaced with the target page's ID.
  */
 export function resolveRefs(
   pages: Page[],
@@ -56,16 +52,22 @@ function resolveAttributeRefs(
   if (!attributes) return;
 
   for (const attr of attributes) {
-    if (attr.type !== "see" || !attr.text) continue;
+    if (attr.type !== "see" || !attr.ref) continue;
 
-    const refText = attr.text;
+    const refText = attr.ref;
 
-    // Parse "file.rb:SectionTitle" or just "file.rb"
+    // Try title-only match first (e.g. "企業詳細ページ")
+    const titleOnlyId = pageTitleToIdMap.get(refText);
+    if (titleOnlyId) {
+      attr.ref = titleOnlyId;
+      continue;
+    }
+
+    // Parse "file:Title" or just "file"
     const colonIndex = refText.lastIndexOf(":");
     let filePath: string;
     let targetTitle: string | undefined;
 
-    // Check if the colon is part of a Windows drive letter or not present
     if (colonIndex > 0 && !refText.substring(0, colonIndex).endsWith("\\")) {
       filePath = refText.substring(0, colonIndex);
       targetTitle = refText.substring(colonIndex + 1);
@@ -75,33 +77,27 @@ function resolveAttributeRefs(
     }
 
     if (targetTitle) {
-      // Resolve by title
-      const id = pageTitleToIdMap.get(targetTitle);
-      if (id) {
-        attr.ref = id;
-        delete attr.text;
+      const pageId = pageTitleToIdMap.get(targetTitle);
+      if (pageId) {
+        attr.ref = pageId;
       } else {
-        console.error(`[resolve-refs] Could not find page with title "${targetTitle}" referenced in see attribute: ${refText}`);
+        console.error(`[resolve-refs] Page "${targetTitle}" not found (from: ${refText})`);
       }
     } else {
-      // Resolve by file: reference the first page in that file
       const pagesInFile = fileToPages.get(filePath);
       if (pagesInFile && pagesInFile.length > 0) {
         attr.ref = pagesInFile[0].id;
-        delete attr.text;
       } else {
-        // Try to find by searching all file keys that end with the given path
         let found = false;
         for (const [key, filePages] of fileToPages) {
           if (key.endsWith(filePath) && filePages.length > 0) {
             attr.ref = filePages[0].id;
-            delete attr.text;
             found = true;
             break;
           }
         }
         if (!found) {
-          console.error(`[resolve-refs] Could not find pages for file "${filePath}" referenced in see attribute: ${refText}`);
+          console.error(`[resolve-refs] File "${filePath}" not found (from: ${refText})`);
         }
       }
     }
