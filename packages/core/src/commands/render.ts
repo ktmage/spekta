@@ -90,7 +90,7 @@ async function runExporters(config: SpektaConfig, ir: BehaviorIR, options: Rende
       renderWeb(ir, siteInfo, webPath);
       console.log(`Web exporter output: ${webPath}/`);
     } catch {
-      console.error(`Web exporter not built. Run: cd packages/exporters/web && bun run build`);
+      console.error(`Web exporter not available.`);
     }
   }
 
@@ -102,7 +102,7 @@ async function runExporters(config: SpektaConfig, ir: BehaviorIR, options: Rende
       renderMarkdown(ir, mdPath);
       console.log(`Markdown exporter output: ${mdPath}/`);
     } catch {
-      console.error(`Markdown exporter not built. Run: cd packages/exporters/markdown && bun run build`);
+      console.error(`Markdown exporter not available.`);
     }
   }
 

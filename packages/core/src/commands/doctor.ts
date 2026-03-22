@@ -61,7 +61,7 @@ export function doctor(): void {
         if (fs.existsSync(exporterDir)) {
           return { ok: true, detail: "built" };
         }
-        return { ok: false, detail: "not built. Run: cd packages/exporters/" + exporterName + " && bun run build" };
+        return { ok: false, detail: `not built. Build the "${exporterName}" exporter first.` };
       }) && ok;
     }
   }
