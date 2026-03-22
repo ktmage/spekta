@@ -1,8 +1,11 @@
 import { z } from "zod/v4";
 import { stringify as toYaml } from "yaml";
 
-// プラグインごとの設定（name, as, path 等）。null は設定なし
-const pluginOptionsSchema = z.record(z.string(), z.unknown()).nullable();
+// プラグインごとの設定。null は設定なし
+// as はコアが使う予約フィールド。それ以外はプラグインが自由に定義する
+const pluginOptionsSchema = z.object({
+  as: z.string().optional(),
+}).passthrough().nullable();
 
 // パッケージ名のパターン
 const annotatorPackageName = z.string().regex(
