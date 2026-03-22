@@ -12,32 +12,31 @@ export type {
 
 export interface SpektaConfig {
   spec_dir: string;
+  // New format
+  annotator?: Record<string, Record<string, unknown> | null>;
+  exporter?: Record<string, Record<string, unknown> | null>;
+  // Legacy format (backward compatible)
   analyzer: {
-    rspec?: {
-      spec_types: string[];
-    };
-    vitest?: {
-      spec_dir?: string;
-      exclude?: string[];
-    };
+    rspec?: { spec_types: string[] };
+    vitest?: { spec_dir?: string; exclude?: string[] };
   };
   renderer: {
-    web?: RendererWebConfig;
-    markdown?: RendererMarkdownConfig;
-    pdf?: RendererPdfConfig;
+    web?: ExporterWebConfig;
+    markdown?: ExporterMarkdownConfig;
+    pdf?: ExporterPdfConfig;
   };
 }
 
-export interface RendererWebConfig {
+export interface ExporterWebConfig {
   name?: string;
   description?: string;
   path?: string;
 }
 
-export interface RendererMarkdownConfig {
+export interface ExporterMarkdownConfig {
   path?: string;
 }
 
-export interface RendererPdfConfig {
+export interface ExporterPdfConfig {
   path?: string;
 }

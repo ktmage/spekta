@@ -46,31 +46,16 @@ export async function render(config: SpektaConfig, options: RenderOptions): Prom
 }
 
 function collectSpecFiles(config: SpektaConfig): string[] {
+  const specDir = path.resolve(config.spec_dir);
+  const extensions = [".test.ts", ".spec.ts", "_spec.rb"];
+  const exclude = config.analyzer?.vitest?.exclude ?? [];
+
   const files: string[] = [];
-
-  // Collect from vitest config
-  if (config.analyzer.vitest) {
-    const specDir = path.resolve(config.analyzer.vitest.spec_dir ?? config.spec_dir);
-    const exclude = config.analyzer.vitest.exclude ?? [];
-    const tsFiles = collectFiles(specDir, ".test.ts")
-      .filter(f => !exclude.some(pattern => f.includes(pattern)));
-    files.push(...tsFiles);
+  for (const ext of extensions) {
+    files.push(...collectFiles(specDir, ext));
   }
 
-  // Collect from rspec config
-  if (config.analyzer.rspec) {
-    const specDir = path.resolve(config.spec_dir);
-    for (const specType of config.analyzer.rspec.spec_types) {
-      const subDirs: Record<string, string> = { feature_spec: "features", system_spec: "system" };
-      const subDir = subDirs[specType];
-      if (subDir) {
-        const dir = path.join(specDir, subDir);
-        files.push(...collectFiles(dir, "_spec.rb"));
-      }
-    }
-  }
-
-  return files;
+  return files.filter(f => !exclude.some(pattern => f.includes(pattern)));
 }
 
 function collectFiles(dir: string, ext: string): string[] {

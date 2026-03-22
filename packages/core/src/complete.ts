@@ -48,11 +48,21 @@ function getAnnotatorNames(config: SpektaConfig): string[] {
 
 async function loadAnnotator(name: string): Promise<AnnotatorPlugin> {
   const packageName = name.startsWith("@") ? name : `@spekta/annotator-${name}`;
+
+  // Try npm package first
   try {
     const mod = await import(packageName);
     return mod.default as AnnotatorPlugin;
   } catch {
-    throw new Error(`Annotator plugin "${packageName}" not found. Install it with: bun add ${packageName}`);
+    // Fallback: try relative path from core package (for monorepo development)
+    const shortName = packageName.replace("@spekta/annotator-", "");
+    const localPath = new URL(`../../annotators/${shortName}/src/index.ts`, import.meta.url).pathname;
+    try {
+      const mod = await import(localPath);
+      return mod.default as AnnotatorPlugin;
+    } catch {
+      throw new Error(`Annotator plugin "${packageName}" not found. Install it with: bun add ${packageName}`);
+    }
   }
 }
 
