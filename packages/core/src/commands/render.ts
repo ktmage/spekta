@@ -1,5 +1,6 @@
 import * as path from "node:path";
 import type { SpektaConfig, BehaviorIR, SiteInfo } from "../schema/types.js";
+import type { ExporterPlugin } from "../schema/plugin.js";
 import { parseFiles } from "../core/parser.js";
 import { resolveRefs, buildPageTitleToIdMap } from "../core/resolve-refs.js";
 import { collectFiles, collectAllFiles } from "../core/files.js";
@@ -14,7 +15,7 @@ export interface RenderOptions {
  * Flow:
  *   1. Collect test files from config
  *   2. Parser reads [spekta:*] comments → IR
- *   3. Exporter writes IR → Document
+ *   3. Exporter plugins write IR → Document
  */
 export async function render(config: SpektaConfig, options: RenderOptions): Promise<void> {
   const targetDir = path.resolve(config.target_dir);
@@ -51,46 +52,90 @@ export async function render(config: SpektaConfig, options: RenderOptions): Prom
   console.log("Render complete.");
 }
 
+function getExporterEntries(config: SpektaConfig): Array<{ name: string; exporterConfig: Record<string, unknown> }> {
+  // New format: exporter section
+  const exporterRaw = config.exporter;
+  if (exporterRaw) {
+    return Object.entries(exporterRaw).map(([name, exporterConfig]) => ({
+      name,
+      exporterConfig: (exporterConfig ?? {}) as Record<string, unknown>,
+    }));
+  }
+
+  // Legacy format: renderer section
+  const entries: Array<{ name: string; exporterConfig: Record<string, unknown> }> = [];
+  if (config.renderer.web) entries.push({ name: "web", exporterConfig: config.renderer.web as Record<string, unknown> });
+  if (config.renderer.markdown) entries.push({ name: "markdown", exporterConfig: config.renderer.markdown as Record<string, unknown> });
+  if (config.renderer.pdf) entries.push({ name: "pdf", exporterConfig: config.renderer.pdf as Record<string, unknown> });
+  return entries;
+}
+
 async function runExporters(config: SpektaConfig, ir: BehaviorIR, options: RenderOptions): Promise<void> {
-  if (config.renderer.web) {
-    const webPath = path.resolve(config.renderer.web.path ?? ".spekta/web");
-    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../../exporters/web/dist/render.js");
+  const exporterEntries = getExporterEntries(config);
+
+  const siteInfo: SiteInfo = {
+    builtAt: new Date().toISOString(),
+    mode: options.mode,
+  };
+
+  for (const { name, exporterConfig } of exporterEntries) {
     try {
-      const { renderWeb } = await import(exporterDir);
-      const siteInfo: SiteInfo = {
-        name: config.renderer.web.name,
-        description: config.renderer.web.description,
-        builtAt: new Date().toISOString(),
-        mode: options.mode,
+      const exporterPlugin = await loadExporter(name);
+      const outputDir = path.resolve(
+        (exporterConfig.path as string | undefined) ?? `.spekta/${name}`,
+      );
+
+      // Merge site info from exporter config
+      const exporterSiteInfo: SiteInfo = {
+        ...siteInfo,
+        name: exporterConfig.name as string | undefined,
+        description: exporterConfig.description as string | undefined,
       };
-      renderWeb(ir, siteInfo, webPath);
-      console.log(`Web exporter output: ${webPath}/`);
+
+      exporterPlugin.export(ir, exporterConfig, outputDir, exporterSiteInfo);
+      console.log(`Exporter "${name}" output: ${outputDir}/`);
+    } catch (err: any) {
+      console.error(`Exporter "${name}" failed: ${err.message}`);
+    }
+  }
+}
+
+async function loadExporter(name: string): Promise<ExporterPlugin> {
+  // If it's a full package name (starts with @), resolve from CWD
+  if (name.startsWith("@")) {
+    try {
+      const { createRequire } = await import("node:module");
+      const localRequire = createRequire(path.resolve("package.json"));
+      const resolved = localRequire.resolve(name);
+      const exporterModule = await import(resolved);
+      return exporterModule.default as ExporterPlugin;
     } catch {
-      console.error(`Web exporter not available.`);
+      throw new Error(`Exporter plugin "${name}" not found. Install it to your project.`);
     }
   }
 
-  if (config.renderer.markdown) {
-    const mdPath = path.resolve(config.renderer.markdown.path ?? ".spekta/markdown");
-    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../../exporters/markdown/dist/render.js");
-    try {
-      const { renderMarkdown } = await import(exporterDir);
-      renderMarkdown(ir, mdPath);
-      console.log(`Markdown exporter output: ${mdPath}/`);
-    } catch {
-      console.error(`Markdown exporter not available.`);
-    }
+  // Built-in exporter: resolve from packages/exporters/{name}/dist/render.js
+  const exporterPath = path.resolve(import.meta.dirname ?? ".", `../../../exporters/${name}/dist/render.js`);
+  try {
+    const exporterModule = await import(exporterPath);
+    // Wrap legacy renderer into ExporterPlugin interface
+    return wrapLegacyExporter(name, exporterModule);
+  } catch {
+    throw new Error(`Exporter "${name}" not available.`);
   }
+}
 
-  if (config.renderer.pdf) {
-    const pdfPath = path.resolve(config.renderer.pdf.path ?? ".spekta/pdf");
-    const exporterDir = path.resolve(import.meta.dirname ?? ".", "../../../exporters/pdf/dist/render.js");
-    try {
-      const { renderPdf } = await import(exporterDir);
-      renderPdf(ir, pdfPath);
-      console.log(`PDF exporter output: ${pdfPath}/`);
-    } catch {
-      console.error(`PDF exporter not built.`);
-    }
-  }
+function wrapLegacyExporter(name: string, mod: any): ExporterPlugin {
+  return {
+    name,
+    export(ir, config, outputDir, siteInfo) {
+      if (mod.renderWeb) {
+        mod.renderWeb(ir, siteInfo, outputDir);
+      } else if (mod.renderMarkdown) {
+        mod.renderMarkdown(ir, outputDir);
+      } else if (mod.renderPdf) {
+        mod.renderPdf(ir, outputDir);
+      }
+    },
+  };
 }
