@@ -70,6 +70,11 @@ exporter:
 | [`packages/exporters/web`](https://github.com/ktmage/spekta-exporter-web) | HTML Exporter + dev サーバー |
 | [`packages/exporters/markdown`](https://github.com/ktmage/spekta-exporter-markdown) | Markdown Exporter |
 
+## プラグイン開発
+
+- [Annotator プラグインの作成](docs/creating-annotator.md)
+- [Exporter プラグインの作成](docs/creating-exporter.md)
+
 ## 開発
 
 ```bash
