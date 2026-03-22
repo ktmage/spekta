@@ -5,7 +5,8 @@ const SPEKTA_PATTERN = /^\s*(?:\/\/|#)\s*\[spekta:\w+\]/;
 
 /**
  * Write annotations as [spekta:*] comments into a file.
- * Existing [spekta:*] comments are removed and replaced with new ones.
+ * Existing auto-generated [spekta:*] comments (page, section, step) are replaced.
+ * Hand-written comments (summary, why, see, image, graph) are preserved.
  */
 export function importAnnotations(filePath: string, annotations: Annotation[]): void {
   const source = fs.readFileSync(filePath, "utf-8");
@@ -13,35 +14,67 @@ export function importAnnotations(filePath: string, annotations: Annotation[]): 
   fs.writeFileSync(filePath, result);
 }
 
+const AUTO_GENERATED_TYPES = new Set(["page", "section", "step"]);
+
 /**
- * Merge annotations into source code, replacing existing [spekta:*] comments.
+ * Merge annotations into source code.
+ * - Removes existing auto-generated [spekta:*] comments (page, section, step)
+ * - Preserves hand-written comments (summary, why, see, image, graph)
+ * - Inserts new annotations at the correct positions
  */
 export function mergeAnnotations(source: string, annotations: Annotation[], commentPrefix: string): string {
   const lines = source.split("\n");
 
-  // Remove existing [spekta:*] comments
-  const cleaned = lines.filter(line => !SPEKTA_PATTERN.test(line));
+  // Step 1: Build a map from original line number → content (before any removal)
+  // and record which lines are auto-generated spekta comments to remove
+  const linesToRemove = new Set<number>();
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(/^\s*(?:\/\/|#)\s*\[spekta:(\w+)\]/);
+    if (match && AUTO_GENERATED_TYPES.has(match[1])) {
+      linesToRemove.add(i);
+    }
+  }
 
-  // Sort annotations by line number (descending) to insert from bottom up
-  const sorted = [...annotations].sort((a, b) => b.line - a.line);
+  // Step 2: Remove auto-generated comments and build line number mapping
+  // originalLine → newLine (after removal)
+  const cleaned: string[] = [];
+  const lineMap = new Map<number, number>(); // original 1-based → new 1-based
+  for (let i = 0; i < lines.length; i++) {
+    if (linesToRemove.has(i)) continue;
+    lineMap.set(i + 1, cleaned.length + 1);
+    cleaned.push(lines[i]);
+  }
 
-  for (const ann of sorted) {
-    // Find the right insertion point (before the target line, adjusted for removed lines)
-    const insertAt = Math.min(ann.line - 1, cleaned.length);
-    const indent = getIndentAt(cleaned, insertAt);
+  // For lines after the end, map to the end
+  for (let i = 0; i < lines.length; i++) {
+    if (!lineMap.has(i + 1)) {
+      // Find the next mapped line
+      for (let j = i + 1; j <= lines.length; j++) {
+        if (lineMap.has(j + 1)) {
+          lineMap.set(i + 1, lineMap.get(j + 1)!);
+          break;
+        }
+      }
+    }
+  }
+
+  // Step 3: Insert annotations (sorted by mapped line, descending for bottom-up insertion)
+  const mapped = annotations.map(ann => ({
+    ...ann,
+    mappedLine: lineMap.get(ann.line) ?? ann.line,
+  }));
+  mapped.sort((a, b) => b.mappedLine - a.mappedLine);
+
+  for (const ann of mapped) {
+    const insertAt = Math.max(0, Math.min(ann.mappedLine - 1, cleaned.length));
+    // Use the indent of the target line
+    const targetLine = cleaned[insertAt] ?? "";
+    const indent = targetLine.match(/^(\s*)/)?.[1] ?? "";
     const comment = `${indent}${commentPrefix} [spekta:${ann.type}] ${ann.text}`;
     cleaned.splice(insertAt, 0, comment);
   }
 
   return cleaned.join("\n");
-}
-
-function getIndentAt(lines: string[], index: number): string {
-  if (index >= 0 && index < lines.length) {
-    const match = lines[index].match(/^(\s*)/);
-    return match ? match[1] : "";
-  }
-  return "";
 }
 
 function getCommentPrefix(filePath: string): string {

@@ -71,6 +71,8 @@ function buildPages(filePath: string, entries: CommentEntry[]): Page[] {
   let currentPage: Page | null = null;
   // Stack of (section, indent) for nesting
   const sectionStack: { section: Section; indent: number }[] = [];
+  // Pending attributes before a page is declared
+  let pendingAttrs: Attribute[] = [];
 
   for (const entry of entries) {
     if (entry.type === "page") {
@@ -80,6 +82,11 @@ function buildPages(filePath: string, entries: CommentEntry[]): Page[] {
         type: "feature",
         title: entry.text,
       };
+      // Attach pending attributes (summary, why, etc. that appeared before this page)
+      if (pendingAttrs.length > 0) {
+        currentPage.attributes = pendingAttrs;
+        pendingAttrs = [];
+      }
       pages.push(currentPage);
       sectionStack.length = 0;
       continue;
@@ -138,6 +145,9 @@ function buildPages(filePath: string, entries: CommentEntry[]): Page[] {
     } else if (currentPage) {
       if (!currentPage.attributes) currentPage.attributes = [];
       currentPage.attributes.push(attr);
+    } else {
+      // No page yet — save as pending for the next page
+      pendingAttrs.push(attr);
     }
   }
 
