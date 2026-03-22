@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { generateConfigTemplate } from "../schema/config.js";
+import { CONFIG_TEMPLATE } from "../schema/config.js";
 
 export function init(): void {
   const configPath = path.resolve(".spekta.yml");
@@ -10,7 +10,7 @@ export function init(): void {
     process.exit(1);
   }
 
-  fs.writeFileSync(configPath, generateConfigTemplate());
+  fs.writeFileSync(configPath, CONFIG_TEMPLATE);
   fs.mkdirSync(path.resolve(".spekta"), { recursive: true });
 
   console.log("Created .spekta.yml and .spekta/ directory.");

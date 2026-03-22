@@ -1,5 +1,4 @@
 import { z } from "zod/v4";
-import { stringify as toYaml } from "yaml";
 
 // プラグインごとの設定。null は設定なし
 // as はコアが使う予約フィールド。それ以外はプラグインが自由に定義する
@@ -30,28 +29,16 @@ export const spektaConfigSchema = z.object({
 
 export type SpektaConfig = z.infer<typeof spektaConfigSchema>;
 
-/**
- * Generate a commented YAML template from the config schema.
- */
-export function generateConfigTemplate(): string {
-  const exampleConfig: Record<string, unknown> = {
-    target_dir: "test/",
-    include: [".test.ts"],
-    annotator: {
-      "@ktmage/spekta-annotator-vitest": null,
-    },
-    exporter: {
-      "@ktmage/spekta-exporter-web": { name: "My Project" },
-      "@ktmage/spekta-exporter-markdown": null,
-    },
-  };
-
-  const yamlString = toYaml(exampleConfig, { nullStr: "" });
-
-  const commentedLines = yamlString
-    .split("\n")
-    .map(line => (line.trim() === "" ? "" : `# ${line}`))
-    .join("\n");
-
-  return `# .spekta.yml\n${commentedLines}`;
-}
+export const CONFIG_TEMPLATE = `# .spekta.yml
+# target_dir: test/
+# include:
+#   - ".test.ts"
+#
+# annotator:
+#   "@ktmage/spekta-annotator-vitest":
+#
+# exporter:
+#   "@ktmage/spekta-exporter-web":
+#     name: "My Project"
+#   "@ktmage/spekta-exporter-markdown":
+`;
