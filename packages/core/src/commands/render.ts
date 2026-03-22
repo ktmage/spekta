@@ -76,8 +76,7 @@ async function runExporters(config: SpektaConfig, ir: BehaviorIR): Promise<void>
 
 async function loadExporter(name: string): Promise<ExporterPlugin> {
   try {
-    const exporterModule = await loadPluginModule(name);
-    return exporterModule.default as ExporterPlugin;
+    return await loadPluginModule(name) as ExporterPlugin;
   } catch {
     throw new Error(`Exporter plugin "${name}" not found. Install it to your project.`);
   }

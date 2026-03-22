@@ -49,8 +49,7 @@ function getAnnotatorNames(config: SpektaConfig): string[] {
 
 async function loadAnnotator(name: string): Promise<AnnotatorPlugin> {
   try {
-    const annotatorModule = await loadPluginModule(name);
-    return annotatorModule.default as AnnotatorPlugin;
+    return await loadPluginModule(name) as AnnotatorPlugin;
   } catch {
     throw new Error(`Annotator plugin "${name}" not found. Install it to your project.`);
   }
