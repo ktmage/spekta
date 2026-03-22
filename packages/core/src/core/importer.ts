@@ -14,7 +14,7 @@ export function importAnnotations(filePath: string, annotations: Annotation[]): 
   fs.writeFileSync(filePath, result);
 }
 
-const AUTO_GENERATED_TYPES = new Set(["page", "section", "step", "steps", "steps:end"]);
+const AUTO_GENERATED_TYPES = new Set(["section", "step", "steps", "steps:end"]);
 
 /**
  * Merge annotations into source code.

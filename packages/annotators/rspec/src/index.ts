@@ -15,19 +15,15 @@ const plugin: AnnotatorPlugin = {
       const line = lines[i];
       const lineNum = i + 1;
 
-      // feature "title" do / describe "title" do → page
-      const pageMatch = line.match(/^\s*(?:feature|describe)\s+["'](.+?)["']\s+do/);
-      if (pageMatch) {
+      // feature "title" do / describe "title" do → section
+      // [spekta:page] は手書き。Annotator は section のみ生成する。
+      const describeMatch = line.match(/^\s*(?:feature|describe)\s+["'](.+?)["']\s+do/);
+      if (describeMatch) {
         if (stepsStarted) {
           annotations.push({ line: lastStepLine + 1, type: "steps:end", text: "" });
           stepsStarted = false;
         }
-        const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
-        annotations.push({
-          line: lineNum,
-          type: indent <= 0 ? "page" : "section",
-          text: pageMatch[1],
-        });
+        annotations.push({ line: lineNum, type: "section", text: describeMatch[1] });
         inScenario = false;
         continue;
       }
