@@ -3,6 +3,7 @@
   "version": "0.2.0",
   "type": "module",
   "main": "dist/render.js",
+  "files": ["dist"],
   "scripts": { "build": "tsc" },
   "dependencies": {
     "@ktmage/spekta": "workspace:*"

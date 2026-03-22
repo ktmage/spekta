@@ -2,7 +2,8 @@
   "name": "@ktmage/spekta-annotator-rspec",
   "version": "0.2.0",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "files": ["dist"],
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit"
