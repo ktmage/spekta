@@ -86,7 +86,15 @@ context "データが存在する場合" do
 | `[spekta:image]` | スクリーンショット | `# [spekta:image] screenshots/search.png` |
 | `[spekta:graph]` | Mermaid ダイアグラム | `# [spekta:graph]` + 続く行に Mermaid 記法 |
 
-### 7. 動作確認する
+### 7. 構文チェックする
+
+```bash
+spekta check
+```
+
+アノテーションの構文エラーがないか検証する。`[spekta:steps]` と `[spekta:steps:end]` のペア、`[spekta:step]` の位置、空テキスト等をチェックする。全ファイルが passed になるまで修正する。
+
+### 8. ドキュメント生成を確認する
 
 ```bash
 spekta render
