@@ -83,3 +83,9 @@ cd spekta
 bun install
 bun run test
 ```
+
+詳しくは [CONTRIBUTING.md](CONTRIBUTING.md) を参照。
+
+## ライセンス
+
+[MIT](LICENSE)
