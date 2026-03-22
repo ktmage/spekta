@@ -2,6 +2,8 @@
 
 テストコードから仕様書を生成するツールチェイン。
 
+**[ドキュメント（HTML）](https://ktmage.github.io/spekta/)** | [ドキュメント（Markdown）](.spekta/markdown/)
+
 ## 思想
 
 テストファイルは実行可能で、正しいかどうか検証可能な唯一の信頼できる仕様書である。Spekta はテストファイルに書かれた `[spekta:*]` コメントを読み取り、人間が読める仕様書を生成する。
@@ -48,16 +50,23 @@ exporter:
 ## コメント属性
 
 ```ruby
-# [spekta:page] company-search        # ページ（英語スラッグ）
+# [spekta:page] 企業検索               # ページ
 # [spekta:summary] 企業を検索する機能   # 概要
 # [spekta:section] データが存在する場合  # セクション
 # [spekta:why] 初回表示の速度が重要     # 理由
 # [spekta:see] company-detail          # 関連ページ参照
+# [spekta:text] 補足テキスト            # テキスト
+# [spekta:callout] warning 注意事項    # 注意書き（note/warning/tip）
 # [spekta:image] screenshot.png        # 画像
 # [spekta:graph]                       # Mermaid ダイアグラム
 # [spekta:steps]                       # ステップブロック開始
 # [spekta:step] ページを開く            # ステップ
 # [spekta:steps:end]                   # ステップブロック終了
+# [spekta:code] typescript             # コードブロック開始
+# [spekta:code:end]                    # コードブロック終了
+# [spekta:list]                        # リスト開始
+# [spekta:item] 項目                   # リスト項目
+# [spekta:list:end]                    # リスト終了
 ```
 
 ## パッケージ構成
