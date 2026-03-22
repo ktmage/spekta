@@ -41,8 +41,8 @@ export async function render(config: SpektaConfig, options: RenderOptions): Prom
 
   console.log(`Found ${pages.length} page(s).`);
 
-  const titleToId = buildPageTitleToIdMap(pages);
-  resolveRefs(pages, fileToPages, titleToId);
+  const pageTitleToIdMap = buildPageTitleToIdMap(pages);
+  resolveRefs(pages, fileToPages, pageTitleToIdMap);
 
   const ir: BehaviorIR = { version: "1.0.0", pages };
 

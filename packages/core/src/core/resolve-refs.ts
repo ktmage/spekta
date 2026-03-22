@@ -25,12 +25,12 @@ export function buildPageTitleToIdMap(pages: Page[]): Map<string, string> {
 export function resolveRefs(
   pages: Page[],
   fileToPages: Map<string, Page[]>,
-  titleToId: Map<string, string>,
+  pageTitleToIdMap: Map<string, string>,
 ): void {
   for (const page of pages) {
-    resolveAttributeRefs(page.attributes, fileToPages, titleToId);
+    resolveAttributeRefs(page.attributes, fileToPages, pageTitleToIdMap);
     if (page.sections) {
-      resolveSectionRefs(page.sections, fileToPages, titleToId);
+      resolveSectionRefs(page.sections, fileToPages, pageTitleToIdMap);
     }
   }
 }
@@ -38,12 +38,12 @@ export function resolveRefs(
 function resolveSectionRefs(
   sections: Section[],
   fileToPages: Map<string, Page[]>,
-  titleToId: Map<string, string>,
+  pageTitleToIdMap: Map<string, string>,
 ): void {
   for (const section of sections) {
-    resolveAttributeRefs(section.attributes, fileToPages, titleToId);
+    resolveAttributeRefs(section.attributes, fileToPages, pageTitleToIdMap);
     if (section.sections) {
-      resolveSectionRefs(section.sections, fileToPages, titleToId);
+      resolveSectionRefs(section.sections, fileToPages, pageTitleToIdMap);
     }
   }
 }
@@ -51,7 +51,7 @@ function resolveSectionRefs(
 function resolveAttributeRefs(
   attributes: Attribute[] | undefined,
   fileToPages: Map<string, Page[]>,
-  titleToId: Map<string, string>,
+  pageTitleToIdMap: Map<string, string>,
 ): void {
   if (!attributes) return;
 
@@ -76,7 +76,7 @@ function resolveAttributeRefs(
 
     if (targetTitle) {
       // Resolve by title
-      const id = titleToId.get(targetTitle);
+      const id = pageTitleToIdMap.get(targetTitle);
       if (id) {
         attr.ref = id;
         delete attr.text;
