@@ -1,7 +1,7 @@
 import { loadConfig } from "./core/config.js";
 import { build } from "./commands/build.js";
 import { render } from "./commands/render.js";
-import { complete } from "./commands/complete.js";
+import { annotate } from "./commands/annotate.js";
 import { doctor } from "./commands/doctor.js";
 import { init } from "./commands/init.js";
 import { resolvePluginCommand } from "./core/resolve-plugin-command.js";
@@ -34,8 +34,8 @@ async function main(): Promise<void> {
     case "render":
       await render(config);
       break;
-    case "complete":
-      await complete(config);
+    case "annotate":
+      await annotate(config);
       break;
     default:
       if (command.includes(":")) {
@@ -61,7 +61,7 @@ Commands:
   init               Create .spekta.yml and .spekta/ directory
   build              Run annotators, parse test files, and generate documentation
   render             Parse test files and generate documentation (skip annotators)
-  complete           Run annotator plugins to auto-complete comments
+  annotate           Run annotator plugins to add [spekta:*] comments
   doctor             Check environment and dependencies
   {plugin}:{command} Run a plugin command (e.g. web:dev)`);
 }

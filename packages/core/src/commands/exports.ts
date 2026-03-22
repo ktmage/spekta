@@ -1,3 +1,3 @@
 export { build } from "./build.js";
 export { render } from "./render.js";
-export { complete } from "./complete.js";
+export { annotate } from "./annotate.js";

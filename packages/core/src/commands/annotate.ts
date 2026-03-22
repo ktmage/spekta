@@ -12,7 +12,7 @@ import { loadAnnotatorPlugin } from "../core/load-plugin.js";
  *   1. Annotator reads test file → Annotation[]
  *   2. Importer writes Annotation[] as [spekta:*] comments to file
  */
-export async function complete(config: SpektaConfig): Promise<void> {
+export async function annotate(config: SpektaConfig): Promise<void> {
   const annotatorNames = getAnnotatorNames(config);
   if (annotatorNames.length === 0) {
     return;

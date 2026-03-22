@@ -1,11 +1,11 @@
 import type { SpektaConfig } from "../schema/types.js";
-import { complete } from "./complete.js";
+import { annotate } from "./annotate.js";
 import { render } from "./render.js";
 
 /**
- * Full build pipeline: complete (annotator) + parse + export.
+ * Full build pipeline: annotate + render.
  */
 export async function build(config: SpektaConfig): Promise<void> {
-  await complete(config);
+  await annotate(config);
   await render(config);
 }
