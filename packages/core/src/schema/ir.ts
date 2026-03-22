@@ -23,10 +23,10 @@ const seeNodeSchema = z.object({
   ref: sha256Id,
 });
 
-const stepsNodeSchema = z.object({
-  type: z.literal("steps"),
+const stepNodeSchema = z.object({
+  type: z.literal("step"),
   id: sha256Id,
-  items: z.array(z.string()),
+  text: z.string(),
 });
 
 const imageNodeSchema = z.object({
@@ -41,7 +41,16 @@ const graphNodeSchema = z.object({
   text: z.string(),
 });
 
-// Section は children を持てる Node
+// Leaf nodes (children を持たない)
+type LeafNode = z.infer<typeof summaryNodeSchema>
+  | z.infer<typeof whyNodeSchema>
+  | z.infer<typeof seeNodeSchema>
+  | z.infer<typeof stepNodeSchema>
+  | z.infer<typeof imageNodeSchema>
+  | z.infer<typeof graphNodeSchema>;
+
+// Container nodes (children を持つ)
+
 export interface SectionNodeInput {
   type: "section";
   id: string;
@@ -49,14 +58,18 @@ export interface SectionNodeInput {
   children?: NodeInput[];
 }
 
-type LeafNode = z.infer<typeof summaryNodeSchema>
-  | z.infer<typeof whyNodeSchema>
-  | z.infer<typeof seeNodeSchema>
-  | z.infer<typeof stepsNodeSchema>
+// steps の children に入れるノード
+type StepsChildNode = z.infer<typeof stepNodeSchema>
   | z.infer<typeof imageNodeSchema>
   | z.infer<typeof graphNodeSchema>;
 
-export type NodeInput = LeafNode | SectionNodeInput;
+export interface StepsNodeInput {
+  type: "steps";
+  id: string;
+  children?: StepsChildNode[];
+}
+
+export type NodeInput = LeafNode | SectionNodeInput | StepsNodeInput;
 
 const sectionNodeSchema: z.ZodType<SectionNodeInput> = z.object({
   type: z.literal("section"),
@@ -65,14 +78,23 @@ const sectionNodeSchema: z.ZodType<SectionNodeInput> = z.object({
   children: z.lazy(() => z.array(nodeSchema)).optional(),
 });
 
+const stepsChildSchema = z.union([stepNodeSchema, imageNodeSchema, graphNodeSchema]);
+
+const stepsNodeSchema: z.ZodType<StepsNodeInput> = z.object({
+  type: z.literal("steps"),
+  id: sha256Id,
+  children: z.array(stepsChildSchema).optional(),
+});
+
 export const nodeSchema: z.ZodType<NodeInput> = z.union([
   summaryNodeSchema,
   whyNodeSchema,
   seeNodeSchema,
-  stepsNodeSchema,
+  stepNodeSchema,
   imageNodeSchema,
   graphNodeSchema,
   sectionNodeSchema,
+  stepsNodeSchema,
 ]);
 
 // --- Page ---
@@ -92,13 +114,14 @@ export const irSchema = z.object({
 // --- Inferred Types ---
 export type Node = NodeInput;
 export type SectionNode = SectionNodeInput;
+export type StepsNode = StepsNodeInput;
 export type Page = z.infer<typeof pageSchema>;
 export type IR = z.infer<typeof irSchema>;
 
 export type SummaryNode = z.infer<typeof summaryNodeSchema>;
 export type WhyNode = z.infer<typeof whyNodeSchema>;
 export type SeeNode = z.infer<typeof seeNodeSchema>;
-export type StepsNode = z.infer<typeof stepsNodeSchema>;
+export type StepNode = z.infer<typeof stepNodeSchema>;
 export type ImageNode = z.infer<typeof imageNodeSchema>;
 export type GraphNode = z.infer<typeof graphNodeSchema>;
 

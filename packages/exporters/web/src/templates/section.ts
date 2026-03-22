@@ -75,10 +75,18 @@ export function renderSection(
     parts.push(`  </div>`);
   }
 
-  if (stepsNode) {
+  if (stepsNode && stepsNode.children) {
     parts.push(`  <ol class="spec-example__steps">`);
-    for (const stepText of stepsNode.items) {
-      parts.push(`    <li>${escapeHtml(stepText)}</li>`);
+    for (const stepsChild of stepsNode.children) {
+      if (stepsChild.type === "step") {
+        parts.push(`    <li>${escapeHtml(stepsChild.text)}</li>`);
+      } else if (stepsChild.type === "image") {
+        const filename = path.basename(stepsChild.path);
+        imagePaths.push(stepsChild.path);
+        parts.push(`    <li><img src="/images/${escapeHtml(filename)}" alt="${escapeHtml(filename)}" /></li>`);
+      } else if (stepsChild.type === "graph") {
+        parts.push(`    <li><div class="mermaid">${escapeHtml(stepsChild.text)}</div></li>`);
+      }
     }
     parts.push(`  </ol>`);
   }

@@ -82,10 +82,19 @@ function renderNodes(
         lines.push("");
         break;
       case "steps":
-        for (let stepIndex = 0; stepIndex < node.items.length; stepIndex++) {
-          lines.push(`${stepIndex + 1}. ${node.items[stepIndex]}`);
+        if (node.children) {
+          let stepIndex = 1;
+          for (const stepsChild of node.children) {
+            if (stepsChild.type === "step") {
+              lines.push(`${stepIndex}. ${stepsChild.text}`);
+              stepIndex++;
+            } else if (stepsChild.type === "image") {
+              imagePaths.push(stepsChild.path);
+              lines.push(`![${path.basename(stepsChild.path)}](images/${path.basename(stepsChild.path)})`);
+            }
+          }
+          lines.push("");
         }
-        lines.push("");
         break;
       case "section":
         renderSectionNode(lines, node, headingDepth, pageById, imagePaths);

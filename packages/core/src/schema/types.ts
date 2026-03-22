@@ -3,6 +3,7 @@ export type {
   Node,
   SectionNode,
   StepsNode,
+  StepNode,
   SummaryNode,
   WhyNode,
   SeeNode,

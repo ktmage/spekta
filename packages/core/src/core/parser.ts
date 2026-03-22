@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as crypto from "node:crypto";
-import type { Page, Node, SectionNode } from "../schema/ir.js";
+import type { Page, Node, SectionNode, StepNode, ImageNode, GraphNode } from "../schema/ir.js";
 
 const SPEKTA_PATTERN = /^(\s*)(?:\/\/|#)\s*\[spekta:(\w+)\]\s*(.*)/;
 
@@ -67,18 +67,18 @@ function buildPages(entries: CommentEntry[]): Page[] {
   let currentPageTitle = "";
   const sectionStack: { sectionNode: SectionNode; indent: number; title: string }[] = [];
   let pendingNodes: Node[] = [];
-  let pendingSteps: string[] = [];
+  let pendingStepNodes: Array<StepNode | ImageNode | GraphNode> = [];
 
   function flushSteps(): void {
-    if (pendingSteps.length === 0) return;
+    if (pendingStepNodes.length === 0) return;
     const parentPath = getCurrentPath();
     const stepsNode: Node = {
       type: "steps",
       id: generateId(`${parentPath}/steps`),
-      items: [...pendingSteps],
+      children: [...pendingStepNodes],
     };
     attachNode(stepsNode);
-    pendingSteps = [];
+    pendingStepNodes = [];
   }
 
   function getCurrentPath(): string {
@@ -141,7 +141,13 @@ function buildPages(entries: CommentEntry[]): Page[] {
     }
 
     if (entry.type === "step") {
-      pendingSteps.push(entry.text);
+      const parentPath = getCurrentPath();
+      const stepNode: StepNode = {
+        type: "step",
+        id: generateId(`${parentPath}/step/${pendingStepNodes.length}/${entry.text}`),
+        text: entry.text,
+      };
+      pendingStepNodes.push(stepNode);
       continue;
     }
 
