@@ -82,3 +82,7 @@ annotate(filePath, source, config) {
 ## 実装例
 
 [spekta-annotator-rspec](https://github.com/ktmage/spekta-annotator-rspec) を参照。
+
+## README テンプレート
+
+プラグインの README を書く際は [README テンプレート](plugin-readme-template.md) を参照。

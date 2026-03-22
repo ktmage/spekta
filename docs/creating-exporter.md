@@ -123,3 +123,7 @@ spekta my-exporter:dev
 
 - [spekta-exporter-web](https://github.com/ktmage/spekta-exporter-web) — HTML + dev サーバー
 - [spekta-exporter-markdown](https://github.com/ktmage/spekta-exporter-markdown) — Markdown
+
+## README テンプレート
+
+プラグインの README を書く際は [README テンプレート](plugin-readme-template.md) を参照。
