@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import type { Annotation } from "../schema/plugin.js";
 
-const SPEKTA_PATTERN = /^\s*(?:\/\/|#)\s*\[spekta:\w+\]/;
+const SPEKTA_PATTERN = /^\s*(?:\/\/|#)\s*\[spekta:[\w:]+\]/;
 
 /**
  * Write annotations as [spekta:*] comments into a file.
@@ -14,7 +14,7 @@ export function importAnnotations(filePath: string, annotations: Annotation[]): 
   fs.writeFileSync(filePath, result);
 }
 
-const AUTO_GENERATED_TYPES = new Set(["page", "section", "step"]);
+const AUTO_GENERATED_TYPES = new Set(["page", "section", "step", "steps", "steps:end"]);
 
 /**
  * Merge annotations into source code.
@@ -29,7 +29,7 @@ export function mergeAnnotations(source: string, annotations: Annotation[], comm
   // and record which lines are auto-generated spekta comments to remove
   const linesToRemove = new Set<number>();
   for (let i = 0; i < lines.length; i++) {
-    const match = lines[i].match(/^\s*(?:\/\/|#)\s*\[spekta:(\w+)\]/);
+    const match = lines[i].match(/^\s*(?:\/\/|#)\s*\[spekta:([\w:]+)\]/);
     if (match && AUTO_GENERATED_TYPES.has(match[1])) {
       linesToRemove.add(i);
     }

@@ -14,7 +14,7 @@ export function collectFiles(dir: string, extensions: string[]): string[] {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory() && entry.name !== "node_modules") {
       files.push(...collectFiles(fullPath, extensions));
-    } else if (entry.isFile() && extensions.some(ext => entry.name.endsWith(ext))) {
+    } else if (entry.isFile() && extensions.some(ext => entry.name.endsWith(ext.replace(/^\*/, "")))) {
       files.push(fullPath);
     }
   }
