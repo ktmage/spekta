@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as crypto from "node:crypto";
 import type { Page, Node, SectionNode, StepNode, ImageNode, GraphNode } from "../schema/ir.js";
 
-const SPEKTA_PATTERN = /^(\s*)(?:\/\/|#)\s*\[spekta:(\w+)\]\s*(.*)/;
+const SPEKTA_PATTERN = /^(\s*)(?:\/\/|#)\s*\[spekta:([\w:]+)\]\s*(.*)/;
 
 interface CommentEntry {
   indent: number;
@@ -44,7 +44,7 @@ function extractComments(source: string): CommentEntry[] {
         const nextLine = lines[j];
         const nextMatch = nextLine.match(/^\s*(?:\/\/|#)\s*(.*)/);
         if (!nextMatch) break;
-        if (nextMatch[1].match(/\[spekta:\w+\]/)) break;
+        if (nextMatch[1].match(/\[spekta:[\w:]+\]/)) break;
         textLines.push(nextMatch[1]);
         j++;
       }
@@ -67,19 +67,7 @@ function buildPages(entries: CommentEntry[]): Page[] {
   let currentPageTitle = "";
   const sectionStack: { sectionNode: SectionNode; indent: number; title: string }[] = [];
   let pendingNodes: Node[] = [];
-  let pendingStepNodes: Array<StepNode | ImageNode | GraphNode> = [];
-
-  function flushSteps(): void {
-    if (pendingStepNodes.length === 0) return;
-    const parentPath = getCurrentPath();
-    const stepsNode: Node = {
-      type: "steps",
-      id: generateId(`${parentPath}/steps`),
-      children: [...pendingStepNodes],
-    };
-    attachNode(stepsNode);
-    pendingStepNodes = [];
-  }
+  let stepsChildren: Array<StepNode | ImageNode | GraphNode> | null = null; // null = not in steps mode
 
   function getCurrentPath(): string {
     return [currentPageTitle, ...sectionStack.map(s => s.title)].join("/");
@@ -99,8 +87,53 @@ function buildPages(entries: CommentEntry[]): Page[] {
   }
 
   for (const entry of entries) {
+    // [spekta:steps] — start steps mode
+    if (entry.type === "steps") {
+      stepsChildren = [];
+      continue;
+    }
+
+    // [spekta:steps:end] — end steps mode, emit steps node
+    if (entry.type === "steps:end") {
+      if (stepsChildren) {
+        const parentPath = getCurrentPath();
+        const stepsNode: Node = {
+          type: "steps",
+          id: generateId(`${parentPath}/steps`),
+          children: stepsChildren,
+        };
+        attachNode(stepsNode);
+        stepsChildren = null;
+      }
+      continue;
+    }
+
+    // Inside steps mode: only step, image, graph allowed
+    if (stepsChildren !== null) {
+      const parentPath = getCurrentPath();
+      if (entry.type === "step") {
+        stepsChildren.push({
+          type: "step",
+          id: generateId(`${parentPath}/step/${stepsChildren.length}/${entry.text}`),
+          text: entry.text,
+        });
+      } else if (entry.type === "image") {
+        stepsChildren.push({
+          type: "image",
+          id: generateId(`${parentPath}/image/${entry.text}`),
+          path: entry.text,
+        });
+      } else if (entry.type === "graph") {
+        stepsChildren.push({
+          type: "graph",
+          id: generateId(`${parentPath}/graph/${entry.text}`),
+          text: entry.text,
+        });
+      }
+      continue;
+    }
+
     if (entry.type === "page") {
-      flushSteps();
       currentPageTitle = entry.text;
       currentPage = {
         id: generateId(currentPageTitle),
@@ -117,8 +150,6 @@ function buildPages(entries: CommentEntry[]): Page[] {
     }
 
     if (entry.type === "section") {
-      flushSteps();
-
       while (sectionStack.length > 0 && sectionStack[sectionStack.length - 1].indent >= entry.indent) {
         sectionStack.pop();
       }
@@ -140,19 +171,7 @@ function buildPages(entries: CommentEntry[]): Page[] {
       continue;
     }
 
-    if (entry.type === "step") {
-      const parentPath = getCurrentPath();
-      const stepNode: StepNode = {
-        type: "step",
-        id: generateId(`${parentPath}/step/${pendingStepNodes.length}/${entry.text}`),
-        text: entry.text,
-      };
-      pendingStepNodes.push(stepNode);
-      continue;
-    }
-
-    // Other nodes
-    flushSteps();
+    // Other nodes (summary, why, see, image, graph outside steps)
     const parentPath = getCurrentPath();
     const node = entryToNode(entry, parentPath);
     if (!node) continue;
@@ -171,7 +190,6 @@ function buildPages(entries: CommentEntry[]): Page[] {
     attachNode(node);
   }
 
-  flushSteps();
   return pages;
 }
 
