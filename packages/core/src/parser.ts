@@ -137,6 +137,18 @@ function buildPages(filePath: string, entries: CommentEntry[]): Page[] {
       attr.text = entry.text;
     }
 
+    // Look ahead: if a [spekta:page] follows (possibly after other attributes),
+    // this attribute belongs to the next page, not the current one
+    let hasUpcomingPage = false;
+    for (let j = entries.indexOf(entry) + 1; j < entries.length; j++) {
+      if (entries[j].type === "page") { hasUpcomingPage = true; break; }
+      if (entries[j].type === "section" || entries[j].type === "step") break;
+    }
+    if (hasUpcomingPage) {
+      pendingAttrs.push(attr);
+      continue;
+    }
+
     // Attach to most recent section, or page
     if (sectionStack.length > 0) {
       const current = sectionStack[sectionStack.length - 1].section;
@@ -146,7 +158,6 @@ function buildPages(filePath: string, entries: CommentEntry[]): Page[] {
       if (!currentPage.attributes) currentPage.attributes = [];
       currentPage.attributes.push(attr);
     } else {
-      // No page yet — save as pending for the next page
       pendingAttrs.push(attr);
     }
   }
