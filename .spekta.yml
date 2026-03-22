@@ -8,3 +8,6 @@ exporter:
   "@ktmage/spekta-exporter-web":
     name: "Spekta"
     description: "テストコードから仕様書を生成するツールチェイン"
+  "@ktmage/spekta-exporter-markdown":
+    name: "Spekta (Markdown)"
+    description: "テストコードから仕様書を生成するツールチェイン"

@@ -1,6 +1,5 @@
 /testbed/
 .docs/
-.spekta/
 .tmp-*/
 node_modules/
 dist/
