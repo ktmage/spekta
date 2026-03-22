@@ -6,7 +6,7 @@ import { vitestFixturesDir, getGeneratedPages, readPageHtml } from "../helpers.j
 
 const binPath = path.resolve(import.meta.dirname ?? __dirname, "../../packages/core/bin/spekta.js");
 
-// [spekta:page] cli
+// [spekta:page] CLI コマンド
 // [spekta:section] spekta render
 // [spekta:summary] テストファイルの [spekta:*] コメントを読み取ってドキュメントを生成するコマンド。
 describe("spekta render", () => {

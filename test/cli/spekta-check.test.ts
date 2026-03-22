@@ -14,7 +14,7 @@ function runCheck(cwd: string): { stdout: string; exitCode: number } {
   }
 }
 
-// [spekta:page] cli
+// [spekta:page] CLI コマンド
 // [spekta:section] spekta check
 // [spekta:summary] テストファイルの [spekta:*] アノテーションを構文チェックするコマンド。
 describe("spekta check", () => {

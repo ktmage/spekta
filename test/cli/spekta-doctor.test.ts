@@ -17,7 +17,7 @@ function runDoctor(cwd: string): string {
   }
 }
 
-// [spekta:page] cli
+// [spekta:page] CLI コマンド
 // [spekta:section] spekta doctor
 // [spekta:summary] プロジェクトの環境と設定を診断するコマンド。
 describe("spekta doctor", () => {

@@ -85,6 +85,10 @@ context "データが存在する場合" do
 | `[spekta:see]` | 関連ページ参照 | `# [spekta:see] company-detail` |
 | `[spekta:image]` | スクリーンショット | `# [spekta:image] screenshots/search.png` |
 | `[spekta:graph]` | Mermaid ダイアグラム | `# [spekta:graph]` + 続く行に Mermaid 記法 |
+| `[spekta:text]` | 説明テキスト | `# [spekta:text] この機能は認証後に使用できます` |
+| `[spekta:callout]` | 注意書き（note/warning/tip） | `# [spekta:callout] warning この操作は元に戻せません` |
+| `[spekta:code]`...`[spekta:code:end]` | コードブロック | `# [spekta:code] yaml` + コメント行 + `# [spekta:code:end]` |
+| `[spekta:list]`...`[spekta:list:end]` | 箇条書きリスト | `# [spekta:list]` + `# [spekta:item]` 行 + `# [spekta:list:end]` |
 
 ### 7. 構文チェックする
 
@@ -128,5 +132,9 @@ Python:
 - `[spekta:section]` はテストの見出しと一致させる
 - `[spekta:step]` は自然言語で書く。コードをそのまま書かない
 - `[spekta:steps]` と `[spekta:steps:end]` は必ずペアにする
+- `[spekta:code]` と `[spekta:code:end]` は必ずペアにする
+- `[spekta:list]` と `[spekta:list:end]` は必ずペアにする
+- `[spekta:item]` は `[spekta:list]` ブロック内にのみ書く
+- `[spekta:callout]` の variant は `note`, `warning`, `tip` のいずれかを指定する
 - 既存の `[spekta:*]` コメントを壊さない
 - アノテーションのインデントはテストコードのインデントに合わせる

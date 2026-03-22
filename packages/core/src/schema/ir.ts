@@ -41,13 +41,43 @@ const graphNodeSchema = z.object({
   text: z.string(),
 });
 
+const textNodeSchema = z.object({
+  type: z.literal("text"),
+  id: sha256Id,
+  text: z.string(),
+});
+
+const codeNodeSchema = z.object({
+  type: z.literal("code"),
+  id: sha256Id,
+  language: z.string(),
+  text: z.string(),
+});
+
+const calloutNodeSchema = z.object({
+  type: z.literal("callout"),
+  id: sha256Id,
+  variant: z.enum(["note", "warning", "tip"]),
+  text: z.string(),
+});
+
+const itemNodeSchema = z.object({
+  type: z.literal("item"),
+  id: sha256Id,
+  text: z.string(),
+});
+
 // Leaf nodes (children を持たない)
 type LeafNode = z.infer<typeof summaryNodeSchema>
   | z.infer<typeof whyNodeSchema>
   | z.infer<typeof seeNodeSchema>
   | z.infer<typeof stepNodeSchema>
   | z.infer<typeof imageNodeSchema>
-  | z.infer<typeof graphNodeSchema>;
+  | z.infer<typeof graphNodeSchema>
+  | z.infer<typeof textNodeSchema>
+  | z.infer<typeof codeNodeSchema>
+  | z.infer<typeof calloutNodeSchema>
+  | z.infer<typeof itemNodeSchema>;
 
 // Container nodes (children を持つ)
 
@@ -69,7 +99,16 @@ export interface StepsNodeInput {
   children?: StepsChildNode[];
 }
 
-export type NodeInput = LeafNode | SectionNodeInput | StepsNodeInput;
+// list の children に入れるノード
+type ListChildNode = z.infer<typeof itemNodeSchema>;
+
+export interface ListNodeInput {
+  type: "list";
+  id: string;
+  children?: ListChildNode[];
+}
+
+export type NodeInput = LeafNode | SectionNodeInput | StepsNodeInput | ListNodeInput;
 
 const sectionNodeSchema: z.ZodType<SectionNodeInput> = z.object({
   type: z.literal("section"),
@@ -86,6 +125,12 @@ const stepsNodeSchema: z.ZodType<StepsNodeInput> = z.object({
   children: z.array(stepsChildSchema).optional(),
 });
 
+const listNodeSchema: z.ZodType<ListNodeInput> = z.object({
+  type: z.literal("list"),
+  id: sha256Id,
+  children: z.array(itemNodeSchema).optional(),
+});
+
 export const nodeSchema: z.ZodType<NodeInput> = z.union([
   summaryNodeSchema,
   whyNodeSchema,
@@ -93,8 +138,13 @@ export const nodeSchema: z.ZodType<NodeInput> = z.union([
   stepNodeSchema,
   imageNodeSchema,
   graphNodeSchema,
+  textNodeSchema,
+  codeNodeSchema,
+  calloutNodeSchema,
+  itemNodeSchema,
   sectionNodeSchema,
   stepsNodeSchema,
+  listNodeSchema,
 ]);
 
 // --- Page ---
@@ -115,6 +165,7 @@ export const irSchema = z.object({
 export type Node = NodeInput;
 export type SectionNode = SectionNodeInput;
 export type StepsNode = StepsNodeInput;
+export type ListNode = ListNodeInput;
 export type Page = z.infer<typeof pageSchema>;
 export type IR = z.infer<typeof irSchema>;
 
@@ -124,6 +175,10 @@ export type SeeNode = z.infer<typeof seeNodeSchema>;
 export type StepNode = z.infer<typeof stepNodeSchema>;
 export type ImageNode = z.infer<typeof imageNodeSchema>;
 export type GraphNode = z.infer<typeof graphNodeSchema>;
+export type TextNode = z.infer<typeof textNodeSchema>;
+export type CodeNode = z.infer<typeof codeNodeSchema>;
+export type CalloutNode = z.infer<typeof calloutNodeSchema>;
+export type ItemNode = z.infer<typeof itemNodeSchema>;
 
 // --- Validation ---
 export function validate(data: unknown): IR {

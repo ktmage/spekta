@@ -6,7 +6,7 @@ import { rspecFixturesDir, isRubyAvailable } from "../helpers.js";
 
 const binPath = path.resolve(import.meta.dirname ?? __dirname, "../../packages/core/bin/spekta.js");
 
-// [spekta:page] cli
+// [spekta:page] CLI コマンド
 // [spekta:section] spekta annotate
 // [spekta:summary] Annotator プラグインを実行してテストファイルに [spekta:*] コメントを自動追加するコマンド。
 describe("spekta annotate", () => {

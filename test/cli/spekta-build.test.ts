@@ -9,7 +9,7 @@ import {
 const rubyAvailable = isRubyAvailable();
 const context = describe;
 
-// [spekta:page] cli
+// [spekta:page] CLI コマンド
 // [spekta:section] spekta build
 // [spekta:summary] annotate + render を一括実行し、テストコードから仕様書を生成するコマンド。
 describe("spekta build", () => {

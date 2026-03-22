@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as crypto from "node:crypto";
-import type { Page, Node, SectionNode, StepNode, ImageNode, GraphNode } from "../schema/ir.js";
+import type { Page, Node, SectionNode, StepNode, ImageNode, GraphNode, ItemNode } from "../schema/ir.js";
 
 const SPEKTA_PATTERN = /^(\s*)(?:\/\/|#)\s*\[spekta:([\w:]+)\]\s*(.*)/;
 
@@ -38,6 +38,9 @@ function extractComments(source: string): CommentEntry[] {
     const textLines: string[] = [];
     if (match[3]) textLines.push(match[3]);
 
+    // graph と code は複数行対応: 次の [spekta:*] タグまでコメント行を読み取る
+    // code は [spekta:code:end] まで読み取るが、extractComments では1行目のテキスト（言語名）のみ取得
+    // code ブロックの本文は buildPages 側で処理する
     if (type === "graph") {
       let j = i + 1;
       while (j < lines.length) {
@@ -56,6 +59,28 @@ function extractComments(source: string): CommentEntry[] {
       text: textLines.join("\n"),
       line: i + 1,
     });
+
+    // code ブロック: [spekta:code] と [spekta:code:end] の間のコメント行を本文として収集
+    if (type === "code") {
+      const codeLines: string[] = [];
+      let j = i + 1;
+      while (j < lines.length) {
+        const nextLine = lines[j];
+        const nextSpektaMatch = nextLine.match(SPEKTA_PATTERN);
+        if (nextSpektaMatch && nextSpektaMatch[2] === "code:end") break;
+        const commentMatch = nextLine.match(/^\s*(?:\/\/|#)\s?(.*)/);
+        if (commentMatch) {
+          codeLines.push(commentMatch[1]);
+        } else {
+          break;
+        }
+        j++;
+      }
+      // code エントリの text を "language\ncode body" に更新（言語名が空でも必ず \n を入れる）
+      const language = textLines.join("").trim();
+      const codeBody = codeLines.join("\n");
+      entries[entries.length - 1].text = `${language}\n${codeBody}`;
+    }
   }
 
   return entries;
@@ -67,7 +92,8 @@ function buildPages(entries: CommentEntry[]): Page[] {
   let currentPageTitle = "";
   const sectionStack: { sectionNode: SectionNode; indent: number; title: string }[] = [];
   let pendingNodes: Node[] = [];
-  let stepsChildren: Array<StepNode | ImageNode | GraphNode> | null = null; // null = not in steps mode
+  let stepsChildren: Array<StepNode | ImageNode | GraphNode> | null = null;
+  let listChildren: ItemNode[] | null = null;
 
   function getCurrentPath(): string {
     return [currentPageTitle, ...sectionStack.map(s => s.title)].join("/");
@@ -133,6 +159,45 @@ function buildPages(entries: CommentEntry[]): Page[] {
       continue;
     }
 
+    // [spekta:list] — start list mode
+    if (entry.type === "list") {
+      listChildren = [];
+      continue;
+    }
+
+    // [spekta:list:end] — end list mode, emit list node
+    if (entry.type === "list:end") {
+      if (listChildren) {
+        const parentPath = getCurrentPath();
+        const listNode: Node = {
+          type: "list",
+          id: generateId(`${parentPath}/list`),
+          children: listChildren,
+        };
+        attachNode(listNode);
+        listChildren = null;
+      }
+      continue;
+    }
+
+    // Inside list mode: only item allowed
+    if (listChildren !== null) {
+      if (entry.type === "item") {
+        const parentPath = getCurrentPath();
+        listChildren.push({
+          type: "item",
+          id: generateId(`${parentPath}/item/${listChildren.length}/${entry.text}`),
+          text: entry.text,
+        });
+      }
+      continue;
+    }
+
+    // [spekta:code:end] — skip (handled by extractComments)
+    if (entry.type === "code:end") {
+      continue;
+    }
+
     if (entry.type === "page") {
       currentPageTitle = entry.text;
       currentPage = {
@@ -171,7 +236,7 @@ function buildPages(entries: CommentEntry[]): Page[] {
       continue;
     }
 
-    // Other nodes (summary, why, see, image, graph outside steps)
+    // Other nodes (summary, why, see, image, graph, text, code, callout)
     const parentPath = getCurrentPath();
     const node = entryToNode(entry, parentPath);
     if (!node) continue;
@@ -200,6 +265,20 @@ function entryToNode(entry: CommentEntry, parentPath: string): Node | null {
     case "see": return { type: "see", id: generateId(`${parentPath}/see/${entry.text}`), ref: generateId(entry.text) };
     case "image": return { type: "image", id: generateId(`${parentPath}/image/${entry.text}`), path: entry.text };
     case "graph": return { type: "graph", id: generateId(`${parentPath}/graph/${entry.text}`), text: entry.text };
+    case "text": return { type: "text", id: generateId(`${parentPath}/text/${entry.text}`), text: entry.text };
+    case "code": {
+      const newlineIndex = entry.text.indexOf("\n");
+      const language = newlineIndex >= 0 ? entry.text.slice(0, newlineIndex).trim() : "";
+      const codeBody = newlineIndex >= 0 ? entry.text.slice(newlineIndex + 1) : entry.text;
+      return { type: "code", id: generateId(`${parentPath}/code/${entry.text}`), language, text: codeBody };
+    }
+    case "callout": {
+      const spaceIndex = entry.text.indexOf(" ");
+      const variant = spaceIndex >= 0 ? entry.text.slice(0, spaceIndex) : entry.text;
+      const calloutText = spaceIndex >= 0 ? entry.text.slice(spaceIndex + 1) : "";
+      if (variant !== "note" && variant !== "warning" && variant !== "tip") return null;
+      return { type: "callout", id: generateId(`${parentPath}/callout/${entry.text}`), variant, text: calloutText };
+    }
     default: return null;
   }
 }

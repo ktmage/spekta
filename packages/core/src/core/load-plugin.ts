@@ -13,7 +13,7 @@ async function loadPluginModule(packageName: string): Promise<unknown> {
   return module.default ?? module;
 }
 
-function isAnnotatorPlugin(value: unknown): value is AnnotatorPlugin {
+export function isAnnotatorPlugin(value: unknown): value is AnnotatorPlugin {
   if (typeof value !== "object" || value === null) return false;
   const obj = value as Record<string, unknown>;
   return typeof obj.name === "string"
@@ -21,7 +21,7 @@ function isAnnotatorPlugin(value: unknown): value is AnnotatorPlugin {
     && typeof obj.annotate === "function";
 }
 
-function isExporterPlugin(value: unknown): value is ExporterPlugin {
+export function isExporterPlugin(value: unknown): value is ExporterPlugin {
   if (typeof value !== "object" || value === null) return false;
   const obj = value as Record<string, unknown>;
   return typeof obj.name === "string"

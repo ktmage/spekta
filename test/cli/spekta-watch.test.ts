@@ -22,7 +22,7 @@ function httpGet(url: string): Promise<{ status: number; body: string }> {
   });
 }
 
-// [spekta:page] cli
+// [spekta:page] CLI コマンド
 // [spekta:section] spekta web:dev
 // [spekta:summary] Web Exporter の dev サーバー。ファイル変更を監視し、自動リビルドとライブリロードを提供する。
 describe("spekta web:dev", () => {

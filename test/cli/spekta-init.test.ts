@@ -5,7 +5,7 @@ import { execSync } from "node:child_process";
 
 const binPath = path.resolve(import.meta.dirname ?? __dirname, "../../packages/core/bin/spekta.js");
 
-// [spekta:page] cli
+// [spekta:page] CLI コマンド
 // [spekta:section] spekta init
 // [spekta:summary] プロジェクトの初期設定ファイルを生成するコマンド。
 describe("spekta init", () => {

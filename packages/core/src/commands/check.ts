@@ -56,6 +56,8 @@ export function check(config: SpektaConfig): void {
   }
 }
 
+const CALLOUT_VARIANTS = ["note", "warning", "tip"];
+
 function checkFile(filePath: string): CheckResult {
   const source = fs.readFileSync(filePath, "utf-8");
   const lines = source.split("\n");
@@ -64,6 +66,10 @@ function checkFile(filePath: string): CheckResult {
   let sectionCount = 0;
   let stepsOpen = false;
   let stepsOpenLine = 0;
+  let codeOpen = false;
+  let codeOpenLine = 0;
+  let listOpen = false;
+  let listOpenLine = 0;
 
   for (let i = 0; i < lines.length; i++) {
     const match = lines[i].match(SPEKTA_PATTERN);
@@ -112,6 +118,64 @@ function checkFile(filePath: string): CheckResult {
         }
         break;
 
+      case "code":
+        if (codeOpen) {
+          errors.push(`line ${lineNum}: [spekta:code] がネストしています（line ${codeOpenLine} が閉じられていません）`);
+        }
+        codeOpen = true;
+        codeOpenLine = lineNum;
+        break;
+
+      case "code:end":
+        if (!codeOpen) {
+          errors.push(`line ${lineNum}: 対応する [spekta:code] がない [spekta:code:end] です`);
+        }
+        codeOpen = false;
+        break;
+
+      case "list":
+        if (listOpen) {
+          errors.push(`line ${lineNum}: [spekta:list] がネストしています（line ${listOpenLine} が閉じられていません）`);
+        }
+        listOpen = true;
+        listOpenLine = lineNum;
+        break;
+
+      case "list:end":
+        if (!listOpen) {
+          errors.push(`line ${lineNum}: 対応する [spekta:list] がない [spekta:list:end] です`);
+        }
+        listOpen = false;
+        break;
+
+      case "item":
+        if (!listOpen) {
+          errors.push(`line ${lineNum}: [spekta:item] が [spekta:list] ブロックの外にあります`);
+        }
+        if (!text.trim()) {
+          errors.push(`line ${lineNum}: [spekta:item] にテキストがありません`);
+        }
+        break;
+
+      case "text":
+        if (!text.trim()) {
+          errors.push(`line ${lineNum}: [spekta:text] にテキストがありません`);
+        }
+        break;
+
+      case "callout": {
+        const spaceIndex = text.indexOf(" ");
+        const variant = spaceIndex >= 0 ? text.slice(0, spaceIndex) : text.trim();
+        const calloutText = spaceIndex >= 0 ? text.slice(spaceIndex + 1) : "";
+        if (!CALLOUT_VARIANTS.includes(variant)) {
+          errors.push(`line ${lineNum}: [spekta:callout] の variant が不正です（${variant}）。note, warning, tip のいずれかを指定してください`);
+        }
+        if (!calloutText.trim()) {
+          errors.push(`line ${lineNum}: [spekta:callout] にテキストがありません`);
+        }
+        break;
+      }
+
       case "summary":
       case "why":
         if (!text.trim()) {
@@ -120,7 +184,6 @@ function checkFile(filePath: string): CheckResult {
         break;
 
       case "graph":
-        // graph は複数行対応。1行目が空でも後続行にテキストがある
         break;
 
       case "see":
@@ -139,6 +202,14 @@ function checkFile(filePath: string): CheckResult {
 
   if (stepsOpen) {
     errors.push(`line ${stepsOpenLine}: [spekta:steps] に対応する [spekta:steps:end] がありません`);
+  }
+
+  if (codeOpen) {
+    errors.push(`line ${codeOpenLine}: [spekta:code] に対応する [spekta:code:end] がありません`);
+  }
+
+  if (listOpen) {
+    errors.push(`line ${listOpenLine}: [spekta:list] に対応する [spekta:list:end] がありません`);
   }
 
   if (pageCount === 0 && sectionCount > 0) {
