@@ -43,7 +43,7 @@ export function doctor(): void {
           localRequire.resolve(annotatorName);
           return { ok: true, detail: "installed" };
         } catch {
-          return { ok: false, detail: "not found. Run: npm install " + annotatorName };
+          return { ok: false, detail: `not found. Install "${annotatorName}" to your project.` };
         }
       }) && ok;
     }

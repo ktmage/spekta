@@ -56,7 +56,7 @@ async function loadAnnotator(name: string): Promise<AnnotatorPlugin> {
     const annotatorModule = await import(resolved);
     return annotatorModule.default as AnnotatorPlugin;
   } catch {
-    throw new Error(`Annotator plugin "${name}" not found. Install it with: npm install ${name}`);
+    throw new Error(`Annotator plugin "${name}" not found. Install it to your project.`);
   }
 }
 
