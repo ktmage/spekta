@@ -21,8 +21,8 @@ export async function complete(config: SpektaConfig): Promise<void> {
   for (const name of annotatorNames) {
     try {
       const plugin = await loadAnnotator(name);
-      const specDir = path.resolve(config.spec_dir);
-      const files = collectFiles(specDir, plugin.filePatterns);
+      const targetDir = path.resolve(config.target_dir);
+      const files = collectFiles(targetDir, plugin.filePatterns);
 
       for (const file of files) {
         const source = fs.readFileSync(file, "utf-8");

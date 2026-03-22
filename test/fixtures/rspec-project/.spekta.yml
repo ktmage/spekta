@@ -1,4 +1,4 @@
-spec_dir: spec/
+target_dir: spec/
 
 analyzer:
   rspec:

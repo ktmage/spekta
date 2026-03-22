@@ -46,13 +46,13 @@ export async function render(config: SpektaConfig, options: RenderOptions): Prom
 }
 
 function collectSpecFiles(config: SpektaConfig): string[] {
-  const specDir = path.resolve(config.spec_dir);
+  const targetDir = path.resolve(config.target_dir);
   const extensions = [".test.ts", ".spec.ts", "_spec.rb"];
   const exclude = config.analyzer?.vitest?.exclude ?? [];
 
   const files: string[] = [];
   for (const ext of extensions) {
-    files.push(...collectFiles(specDir, ext));
+    files.push(...collectFiles(targetDir, ext));
   }
 
   return files.filter(f => !exclude.some(pattern => f.includes(pattern)));

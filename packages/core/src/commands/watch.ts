@@ -16,7 +16,7 @@ function notifyReload(): void {
 }
 
 export async function watch(config: SpektaConfig): Promise<void> {
-  const specDir = path.resolve(config.spec_dir);
+  const targetDir = path.resolve(config.target_dir);
   const webPath = path.resolve(config.renderer.web?.path ?? ".spekta/web");
 
   console.log("Running initial build...");
@@ -30,12 +30,12 @@ export async function watch(config: SpektaConfig): Promise<void> {
   if (config.analyzer.rspec) {
     for (const t of config.analyzer.rspec.spec_types) {
       const sub = t === "feature_spec" ? "features" : t === "system_spec" ? "system" : t;
-      const dir = path.join(specDir, sub);
+      const dir = path.join(targetDir, sub);
       if (fs.existsSync(dir)) watchDirs.push(dir);
     }
   }
   if (config.analyzer.vitest) {
-    const vitestDir = path.resolve(config.analyzer.vitest.spec_dir ?? config.spec_dir);
+    const vitestDir = path.resolve(config.analyzer.vitest.target_dir ?? config.target_dir);
     if (fs.existsSync(vitestDir)) watchDirs.push(vitestDir);
   }
 

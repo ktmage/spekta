@@ -21,7 +21,7 @@ export function loadConfig(root?: string): SpektaConfig {
   }
 
   const raw = rawConfig as Record<string, unknown>;
-  const specDir = typeof raw.spec_dir === "string" ? raw.spec_dir : "spec/";
+  const targetDir = typeof raw.target_dir === "string" ? raw.target_dir : "spec/";
   const defaultName = path.basename(projectRoot);
 
   // --- Annotator (new format) ---
@@ -39,7 +39,7 @@ export function loadConfig(root?: string): SpektaConfig {
   const vitestRaw = analyzerRaw?.vitest as Record<string, unknown> | undefined;
   const vitestConfig = vitestRaw !== undefined
     ? {
-        spec_dir: typeof vitestRaw.spec_dir === "string" ? vitestRaw.spec_dir : undefined,
+        target_dir: typeof vitestRaw.target_dir === "string" ? vitestRaw.target_dir : undefined,
         exclude: Array.isArray(vitestRaw.exclude) ? vitestRaw.exclude as string[] : undefined,
       }
     : undefined;
@@ -67,7 +67,7 @@ export function loadConfig(root?: string): SpektaConfig {
     : undefined;
 
   return {
-    spec_dir: specDir,
+    target_dir: targetDir,
     annotator: annotatorRaw as SpektaConfig["annotator"],
     exporter: exporterRaw as SpektaConfig["exporter"],
     analyzer: {

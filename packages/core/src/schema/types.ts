@@ -11,14 +11,14 @@ export type {
 // Config types (not part of IR schema)
 
 export interface SpektaConfig {
-  spec_dir: string;
+  target_dir: string;
   // New format
   annotator?: Record<string, Record<string, unknown> | null>;
   exporter?: Record<string, Record<string, unknown> | null>;
   // Legacy format (backward compatible)
   analyzer: {
     rspec?: { spec_types: string[] };
-    vitest?: { spec_dir?: string; exclude?: string[] };
+    vitest?: { target_dir?: string; exclude?: string[] };
   };
   renderer: {
     web?: ExporterWebConfig;
