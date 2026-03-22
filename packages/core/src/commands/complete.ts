@@ -17,6 +17,7 @@ export async function complete(config: SpektaConfig): Promise<void> {
     return;
   }
 
+  
   for (const name of annotatorNames) {
     try {
       const plugin = await loadAnnotator(name);
@@ -47,7 +48,7 @@ function getAnnotatorNames(config: SpektaConfig): string[] {
 }
 
 async function loadAnnotator(name: string): Promise<AnnotatorPlugin> {
-  const packageName = name.startsWith("@") ? name : `@ktmage/spekta-annotator-${name}`;
+  const packageName = name;
 
   // Try npm package first
   try {
