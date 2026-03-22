@@ -2,8 +2,8 @@ target_dir: test/
 include:
   - ".test.ts"
 
-renderer:
+exporter:
   web:
     name: "テストプロダクト"
     description: "テスト用のプロダクト"
-  markdown: {}
+  markdown:

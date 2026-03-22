@@ -50,7 +50,7 @@ export function doctor(): void {
   }
 
   // Check exporter plugins
-  const exporterConfig = config.exporter ?? config.renderer;
+  const exporterConfig = config.exporter;
   if (exporterConfig) {
     for (const exporterName of Object.keys(exporterConfig)) {
       ok = check(`exporter: ${exporterName}`, () => {

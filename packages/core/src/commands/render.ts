@@ -49,19 +49,11 @@ export async function render(config: SpektaConfig): Promise<void> {
 }
 
 function getExporterEntries(config: SpektaConfig): Array<{ name: string; exporterConfig: Record<string, unknown> }> {
-  const exporterRaw = config.exporter;
-  if (exporterRaw) {
-    return Object.entries(exporterRaw).map(([name, exporterConfig]) => ({
-      name,
-      exporterConfig: (exporterConfig ?? {}) as Record<string, unknown>,
-    }));
-  }
-
-  const entries: Array<{ name: string; exporterConfig: Record<string, unknown> }> = [];
-  if (config.renderer.web) entries.push({ name: "web", exporterConfig: config.renderer.web as Record<string, unknown> });
-  if (config.renderer.markdown) entries.push({ name: "markdown", exporterConfig: config.renderer.markdown as Record<string, unknown> });
-  if (config.renderer.pdf) entries.push({ name: "pdf", exporterConfig: config.renderer.pdf as Record<string, unknown> });
-  return entries;
+  if (!config.exporter) return [];
+  return Object.entries(config.exporter).map(([name, exporterConfig]) => ({
+    name,
+    exporterConfig: (exporterConfig ?? {}) as Record<string, unknown>,
+  }));
 }
 
 async function runExporters(config: SpektaConfig, ir: BehaviorIR): Promise<void> {

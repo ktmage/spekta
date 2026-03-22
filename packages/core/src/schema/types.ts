@@ -1,4 +1,4 @@
-// Re-export all types from schema.ts for backward compatibility
+// Re-export all types from schema.ts
 export type {
   Step,
   Attribute,
@@ -13,31 +13,6 @@ export interface SpektaConfig {
   target_dir: string;
   include?: string[];
   exclude?: string[];
-  // New format
   annotator?: Record<string, Record<string, unknown> | null>;
   exporter?: Record<string, Record<string, unknown> | null>;
-  // Legacy format (backward compatible)
-  analyzer: {
-    rspec?: { spec_types: string[] };
-    vitest?: { target_dir?: string; exclude?: string[] };
-  };
-  renderer: {
-    web?: ExporterWebConfig;
-    markdown?: ExporterMarkdownConfig;
-    pdf?: ExporterPdfConfig;
-  };
-}
-
-export interface ExporterWebConfig {
-  name?: string;
-  description?: string;
-  path?: string;
-}
-
-export interface ExporterMarkdownConfig {
-  path?: string;
-}
-
-export interface ExporterPdfConfig {
-  path?: string;
 }

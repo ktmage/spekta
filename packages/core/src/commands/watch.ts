@@ -17,7 +17,8 @@ function notifyReload(): void {
 
 export async function watch(config: SpektaConfig): Promise<void> {
   const targetDir = path.resolve(config.target_dir);
-  const webPath = path.resolve(config.renderer.web?.path ?? ".spekta/web");
+  const webExporterConfig = config.exporter?.web as Record<string, unknown> | undefined;
+  const webPath = path.resolve((webExporterConfig?.path as string | undefined) ?? ".spekta/web");
 
   console.log("Running initial build...");
   await build(config);

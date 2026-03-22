@@ -2,8 +2,8 @@ target_dir: spec/
 include:
   - "_spec.rb"
 
-renderer:
+exporter:
   web:
     name: "テストプロダクト"
     description: "テスト用のプロダクト"
-  markdown: {}
+  markdown:
