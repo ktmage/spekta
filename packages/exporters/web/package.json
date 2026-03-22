@@ -5,7 +5,7 @@
   "main": "dist/render.js",
   "files": ["dist"],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && cp src/style.css src/client.js dist/"
   },
   "dependencies": {
     "@ktmage/spekta": "workspace:*",
