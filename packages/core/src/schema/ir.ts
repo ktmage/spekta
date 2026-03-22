@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
 
+const sha256Id = z.string().regex(/^[0-9a-f]{64}$/, "ID must be a SHA256 hex string");
+
 // --- Node: IR のすべての要素は Node ---
 // type ごとに持つフィールドが異なる。children で再帰的にネストできる。
 
@@ -53,7 +55,7 @@ export type NodeInput = LeafNode | SectionNodeInput;
 
 const sectionNodeSchema: z.ZodType<SectionNodeInput> = z.object({
   type: z.literal("section"),
-  id: z.string(),
+  id: sha256Id,
   title: z.string(),
   children: z.lazy(() => z.array(nodeSchema)).optional(),
 });
@@ -70,7 +72,7 @@ export const nodeSchema: z.ZodType<NodeInput> = z.union([
 
 // --- Page ---
 export const pageSchema = z.object({
-  id: z.string(),
+  id: sha256Id,
   type: z.enum(["feature"]),
   title: z.string(),
   children: z.array(nodeSchema).optional(),
