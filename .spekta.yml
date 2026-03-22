@@ -1,0 +1,10 @@
+version: 1
+target_dir: test/
+include:
+  - ".test.ts"
+exclude:
+  - "fixtures/"
+exporter:
+  "@ktmage/spekta-exporter-web":
+    name: "Spekta"
+    description: "テストコードから仕様書を生成するツールチェイン"

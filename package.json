@@ -13,6 +13,9 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.0",
+    "@ktmage/spekta": "workspace:*",
+    "@ktmage/spekta-exporter-web": "workspace:*",
+    "@ktmage/spekta-exporter-markdown": "workspace:*"
   }
 }

@@ -3,10 +3,10 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as http from "node:http";
 import { spawn, type ChildProcess } from "node:child_process";
-import { vitestFixturesDir, getGeneratedPages, readPageHtml } from "./helpers.js";
+import { vitestFixturesDir, getGeneratedPages, readPageHtml } from "../helpers.js";
 
 const context = describe;
-const binPath = path.resolve(import.meta.dirname ?? __dirname, "../packages/core/bin/spekta.js");
+const binPath = path.resolve(import.meta.dirname ?? __dirname, "../../packages/core/bin/spekta.js");
 
 function waitFor(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -22,7 +22,8 @@ function httpGet(url: string): Promise<{ status: number; body: string }> {
   });
 }
 
-// [spekta:page] spekta web:dev
+// [spekta:page] cli
+// [spekta:section] spekta web:dev
 // [spekta:summary] Web Exporter の dev サーバー。ファイル変更を監視し、自動リビルドとライブリロードを提供する。
 describe("spekta web:dev", () => {
   const projectDir = vitestFixturesDir();

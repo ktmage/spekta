@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>spekta annotate - Spekta</title>
+    <style>/* ============================================================
+   Spekta - Product Specification Viewer
+   ============================================================ */
+
+/* --- Design Tokens --- */
+:root {
+  --color-ink: #1a1a1a;
+  --color-ink-secondary: #555;
+  --color-ink-tertiary: #999;
+  --color-bg: #fff;
+  --color-bg-subtle: #f8f8f8;
+  --color-bg-muted: #f0f0f0;
+  --color-border: #e5e5e5;
+  --color-border-light: #eee;
+
+  --color-accent: #2563eb;
+  --color-accent-soft: #eff6ff;
+
+  --color-callout-why-bg: #fffbeb;
+  --color-callout-why-border: #d97706;
+  --color-callout-why-text: #78350f;
+
+  --sidebar-width: 256px;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP",
+    "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  --transition-fast: 100ms ease;
+}
+
+/* --- Reset --- */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-bg); line-height: 1.65; }
+
+a { text-decoration: none; color: inherit; }
+
+/* --- Mobile Toggle (right-bottom floating) --- */
+.menu-toggle {
+  display: none; position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+  width: 44px; height: 44px; border: none;
+  border-radius: 50%; background: var(--color-ink); color: #fff; cursor: pointer;
+  align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+.menu-toggle--active { background: var(--color-ink-secondary); }
+
+/* --- Sidebar --- */
+.sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: var(--sidebar-width);
+  background: var(--color-bg);
+  border-right: 1px solid var(--color-border);
+  overflow-y: auto; overflow-x: hidden;
+  z-index: 100; display: flex; flex-direction: column;
+}
+.sidebar::-webkit-scrollbar { width: 0; }
+
+.sidebar__header { padding: 20px 16px 12px; flex-shrink: 0; }
+
+/* Search */
+.sidebar__search { padding: 0 12px 8px; flex-shrink: 0; }
+.search { position: relative; }
+.search__input {
+  display: block; width: 100%; padding: 6px 10px;
+  font-family: var(--font-sans); font-size: 0.8125rem;
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  background: var(--color-bg); color: var(--color-ink);
+  outline: none; transition: border-color var(--transition-fast);
+}
+.search__input::placeholder { color: var(--color-ink-tertiary); }
+.search__input:focus { border-color: var(--color-accent); }
+
+.search__results {
+  position: absolute; top: 100%; left: 0; right: 0;
+  max-height: 320px; overflow-y: auto;
+  background: var(--color-bg); border: 1px solid var(--color-border);
+  border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  z-index: 200; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.search__results:empty { display: none; }
+
+.search__result {
+  display: flex; flex-direction: column; width: 100%;
+  padding: 8px 10px; border: none; background: none;
+  font-family: var(--font-sans); text-align: left; cursor: pointer;
+  transition: background var(--transition-fast);
+  text-decoration: none; color: inherit;
+}
+.search__result:hover, .search__result--selected { background: var(--color-bg-subtle); }
+.search__result + .search__result { border-top: 1px solid var(--color-border-light); }
+
+.search__result-label { font-size: 0.8125rem; color: var(--color-ink); line-height: 1.4; }
+.search__result-context { font-size: 0.6875rem; color: var(--color-ink-tertiary); line-height: 1.3; margin-top: 1px; }
+
+.sidebar__brand { display: flex; align-items: center; gap: 8px; }
+.sidebar__logo {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; background: var(--color-ink);
+  border-radius: 5px; font-size: 0.75rem; color: #fff; font-weight: 700;
+}
+.sidebar__title { font-size: 0.875rem; font-weight: 700; color: var(--color-ink); line-height: 1; }
+.sidebar__subtitle { font-size: 0.625rem; color: var(--color-ink-tertiary); line-height: 1; margin-top: 2px; }
+
+/* Sidebar nav */
+.sidebar__nav { flex: 1; padding: 4px 0 20px; }
+.sidebar__section { margin-bottom: 0; }
+
+/* details/summary reset */
+.sidebar__nav details { border: none; }
+.sidebar__nav details > summary { list-style: none; }
+.sidebar__nav details > summary::-webkit-details-marker { display: none; }
+.sidebar__nav details > summary::marker { display: none; content: ""; }
+
+.sidebar__link {
+  display: block; width: 100%; padding: 9px 16px;
+  border: none; background: none;
+  font-family: var(--font-sans); font-size: 0.8125rem; font-weight: 600;
+  color: var(--color-ink); text-align: left; cursor: pointer;
+  line-height: 1.4; transition: background var(--transition-fast);
+  text-decoration: none;
+}
+.sidebar__link:hover { background: var(--color-bg-subtle); }
+.sidebar__link--active { color: var(--color-accent); background: var(--color-accent-soft); }
+
+/* Toggle (inside link, right-aligned) */
+.sidebar__link--top { display: flex; align-items: center; }
+.sidebar__link-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sidebar__toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; flex-shrink: 0;
+  margin-left: 4px;
+  color: var(--color-ink-tertiary); border-radius: var(--radius-sm);
+  transition: transform 150ms ease, color var(--transition-fast);
+}
+.sidebar__link:hover .sidebar__toggle { color: var(--color-ink-secondary); }
+details[open] > summary .sidebar__toggle { transform: rotate(90deg); }
+
+/* Sub-tree */
+.sidebar__subtree { list-style: none; }
+
+.sidebar__sublink {
+  display: block; padding: 5px 16px 5px 28px;
+  font-size: 0.75rem; font-weight: 500; color: var(--color-ink-secondary);
+  text-decoration: none; line-height: 1.4; cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.sidebar__sublink:hover { color: var(--color-ink); background: var(--color-bg-subtle); }
+
+.sidebar__sublink--leaf {
+  font-weight: 400; font-size: 0.6875rem; color: var(--color-ink-tertiary);
+  padding-top: 4px; padding-bottom: 4px; padding-left: 40px;
+}
+.sidebar__sublink--leaf:hover { color: var(--color-ink-secondary); }
+
+.sidebar__subtree .sidebar__subtree .sidebar__sublink { padding-left: 36px; }
+.sidebar__subtree .sidebar__subtree .sidebar__sublink--leaf { padding-left: 48px; }
+
+/* --- Main Content --- */
+.main-content {
+  margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; background: var(--color-bg);
+}
+
+/* --- Spec Content --- */
+.spec-content {
+  max-width: 780px; margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+/* Title */
+.spec-content__title {
+  font-size: 1.625rem; font-weight: 700; color: var(--color-ink);
+  line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 6px;
+}
+
+/* Summary */
+.spec-content__summary {
+  font-size: 0.875rem; color: var(--color-ink-secondary); line-height: 1.65; margin-bottom: 16px;
+}
+
+/* Related (top-level) */
+.spec-content__related {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  font-size: 0.8125rem; color: var(--color-ink-tertiary);
+  margin-bottom: 24px; padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.spec-content__related-label { font-weight: 500; }
+.spec-content__related-link { color: var(--color-accent); text-decoration: none; cursor: pointer; }
+.spec-content__related-link:hover { text-decoration: underline; }
+
+/* Body */
+.spec-content__body { display: flex; flex-direction: column; gap: 24px; }
+
+/* --- Groups --- */
+.spec-group { position: relative; }
+
+.spec-group--depth-1 { padding: 8px 0; }
+.spec-group--depth-1 + .spec-group--depth-1 { padding-top: 20px; border-top: 1px solid var(--color-border-light); }
+
+.spec-group--depth-2 { margin-top: 8px; }
+.spec-group--depth-3, .spec-group--depth-4 { margin-top: 4px; }
+
+.spec-group__header { margin-bottom: 8px; }
+
+.spec-group__heading { font-weight: 600; color: var(--color-ink); line-height: 1.35; }
+.spec-group--depth-1 > .spec-group__header .spec-group__heading { font-size: 1.125rem; letter-spacing: -0.01em; }
+.spec-group--depth-2 > .spec-group__header .spec-group__heading { font-size: 1rem; }
+.spec-group--depth-3 > .spec-group__header .spec-group__heading,
+.spec-group--depth-4 > .spec-group__header .spec-group__heading { font-size: 0.875rem; }
+
+.spec-group__summary { font-size: 0.8125rem; color: var(--color-ink-secondary); line-height: 1.6; margin-top: 2px; }
+
+.spec-group__related { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--color-ink-tertiary); margin-top: 4px; }
+.spec-group__related-label { font-weight: 500; }
+.spec-group__related-link { color: var(--color-accent); text-decoration: none; }
+.spec-group__related-link:hover { text-decoration: underline; }
+
+.spec-group__children { display: flex; flex-direction: column; gap: 16px; }
+
+/* --- Examples --- */
+.spec-example { padding: 8px 0; }
+.spec-example__heading { font-size: 0.875rem; font-weight: 600; color: var(--color-ink); line-height: 1.45; margin-bottom: 4px; }
+
+/* Steps */
+.spec-example__steps {
+  font-size: 0.8125rem; color: var(--color-ink-secondary);
+  line-height: 1.7; padding-left: 1.25em; margin-top: 4px;
+}
+.spec-example__steps li { padding: 1px 0; }
+
+/* --- Callouts --- */
+.spec-callout--why {
+  background: var(--color-callout-why-bg);
+  border-left: 3px solid var(--color-callout-why-border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 8px 12px; margin-top: 6px;
+}
+.spec-callout__label { font-size: 0.6875rem; font-weight: 600; color: var(--color-callout-why-text); margin-bottom: 1px; text-transform: uppercase; letter-spacing: 0.03em; }
+.spec-callout__text { font-size: 0.8125rem; line-height: 1.6; color: var(--color-callout-why-text); }
+
+/* --- See links --- */
+.spec-see { font-size: 0.75rem; color: var(--color-ink-tertiary); margin-top: 6px; }
+.spec-see__label { font-weight: 500; }
+.spec-see__link { color: var(--color-accent); text-decoration: none; }
+.spec-see__link:hover { text-decoration: underline; }
+
+/* --- Graph --- */
+.spec-graph {
+  margin: 16px 0; padding: 20px;
+  background: var(--color-bg-subtle); border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md); overflow-x: auto;
+}
+.spec-graph .mermaid { display: flex; justify-content: center; }
+
+/* --- Image --- */
+.spec-image { margin: 12px 0; }
+.spec-image img { max-width: 100%; border-radius: var(--radius-md); border: 1px solid var(--color-border-light); }
+
+/* --- Site Header --- */
+.site-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.site-header__inner {
+  max-width: 780px;
+}
+.site-header__name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  line-height: 1.3;
+}
+.site-header__description {
+  font-size: 0.8125rem;
+  color: var(--color-ink-tertiary);
+  margin-top: 2px;
+}
+
+/* --- Site Footer --- */
+.site-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--color-border-light);
+  margin-top: auto;
+}
+.site-footer__inner {
+  max-width: 780px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--color-ink-tertiary);
+}
+.site-footer__badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #b45309;
+  background: #fef3c7;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.site-footer__text {
+  font-weight: 500;
+}
+.site-footer__time {
+  color: var(--color-ink-tertiary);
+  opacity: 0.7;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .menu-toggle { display: flex; }
+  .sidebar { transform: translateX(-100%); transition: transform 200ms ease; }
+  .sidebar--open { transform: translateX(0); box-shadow: 4px 0 16px rgba(0,0,0,0.06); }
+  .main-content { margin-left: 0; }
+  .spec-content { padding: 32px 20px 80px; }
+  .spec-content__title { font-size: 1.375rem; }
+  .spec-group--depth-2 { padding-left: 16px; }
+}
+
+@media (max-width: 480px) {
+  .spec-content { padding: 24px 16px 80px; }
+  .spec-content__title { font-size: 1.25rem; }
+}
+
+/* --- Print --- */
+@media print {
+  .sidebar, .menu-toggle { display: none; }
+  .main-content { margin-left: 0; }
+  .spec-content { padding: 0; max-width: 100%; }
+  .spec-callout--why, .spec-graph { break-inside: avoid; }
+}
+</style>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (typeof mermaid !== "undefined") {
+          mermaid.initialize({ startOnLoad: true, theme: "neutral" });
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__label">目次</div>
+      </div>
+      <div class="sidebar__search">
+        <div class="search">
+          <input type="text" class="search__input" id="spekta-search" placeholder="検索..." />
+          <div class="search__results" id="spekta-search-results"></div>
+        </div>
+      </div>
+      <nav class="sidebar__nav">
+        <div class="sidebar__section">
+          <details open>
+            <summary>
+              <a href="/feature/cli/" class="sidebar__link sidebar__link--top sidebar__link--active">
+                <span class="sidebar__link-label">cli</span>
+                <span class="sidebar__toggle"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+              </a>
+            </summary>
+            <ul class="sidebar__subtree"><li><a href="/feature/cli/#spekta annotate" class="sidebar__sublink">spekta annotate</a><ul class="sidebar__subtree"><li><a href="/feature/cli/#annotator が設定されていない場合" class="sidebar__sublink">annotator が設定されていない場合</a></li></ul></li><li><a href="/feature/cli/#spekta build" class="sidebar__sublink">spekta build</a></li><li><a href="/feature/cli/#spekta check" class="sidebar__sublink">spekta check</a><ul class="sidebar__subtree"><li><a href="/feature/cli/#正しいアノテーションの場合" class="sidebar__sublink">正しいアノテーションの場合</a></li></ul></li><li><a href="/feature/cli/#spekta doctor" class="sidebar__sublink">spekta doctor</a><ul class="sidebar__subtree"><li><a href="/feature/cli/#Node.js のバージョンを表示すること" class="sidebar__sublink sidebar__sublink--leaf">Node.js のバージョンを表示すること</a></li><li><a href="/feature/cli/#プロジェクトディレクトリで実行した場合" class="sidebar__sublink">プロジェクトディレクトリで実行した場合</a></li></ul></li><li><a href="/feature/cli/#spekta init" class="sidebar__sublink">spekta init</a><ul class="sidebar__subtree"><li><a href="/feature/cli/#.spekta.yml が存在しない場合" class="sidebar__sublink">.spekta.yml が存在しない場合</a></li><li><a href="/feature/cli/#.spekta.yml が既に存在する場合" class="sidebar__sublink">.spekta.yml が既に存在する場合</a></li></ul></li><li><a href="/feature/cli/#spekta render" class="sidebar__sublink">spekta render</a><ul class="sidebar__subtree"><li><a href="/feature/cli/#Web Exporter の場合" class="sidebar__sublink">Web Exporter の場合</a></li><li><a href="/feature/cli/#Markdown Exporter の場合" class="sidebar__sublink">Markdown Exporter の場合</a></li></ul></li><li><a href="/feature/cli/#spekta web:dev" class="sidebar__sublink">spekta web:dev</a><ul class="sidebar__subtree"><li><a href="/feature/cli/#サーバーが起動している場合" class="sidebar__sublink">サーバーが起動している場合</a></li><li><a href="/feature/cli/#テストファイルを変更した場合" class="sidebar__sublink">テストファイルを変更した場合</a></li></ul></li></ul>
+          </details>
+        </div>
+      </nav>
+    </aside>
+    <main class="main-content" id="main-content">
+      <header class="site-header">
+      <div class="site-header__inner">
+        <h1 class="site-header__name">Spekta</h1>
+      <p class="site-header__description">テストコードから仕様書を生成するツールチェイン</p>
+      </div>
+    </header>
+      <div class="spec-content">
+        <h1 class="spec-content__title">spekta annotate</h1>
+        <div class="spec-content__body">
+      <div class="spec-group spec-group--depth-1" id="spekta annotate">
+  <div class="spec-group__header">
+    <h2 class="spec-group__heading">spekta annotate</h2>
+    <p class="spec-group__summary">Annotator プラグインを実行してテストファイルに [spekta:*] コメントを自動追加するコマンド。</p>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-2" id="annotator が設定されていない場合">
+  <div class="spec-group__header">
+    <h3 class="spec-group__heading">annotator が設定されていない場合</h3>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-3" id="何も処理されずに終了すること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">何も処理されずに終了すること</h4>
+  </div>
+  <ol class="spec-example__steps">
+    <li>annotator 設定のない fixture で spekta annotate を実行する</li>
+    <li>エラーなく完了する</li>
+  </ol>
+</div>
+  </div>
+</div>
+  </div>
+</div>
+      <div class="spec-group spec-group--depth-1" id="spekta build">
+  <div class="spec-group__header">
+    <h2 class="spec-group__heading">spekta build</h2>
+    <p class="spec-group__summary">annotate + render を一括実行し、テストコードから仕様書を生成するコマンド。</p>
+  </div>
+</div>
+      <div class="spec-group spec-group--depth-1" id="spekta check">
+  <div class="spec-group__header">
+    <h2 class="spec-group__heading">spekta check</h2>
+    <p class="spec-group__summary">テストファイルの [spekta:*] アノテーションを構文チェックするコマンド。</p>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-2" id="正しいアノテーションの場合">
+  <div class="spec-group__header">
+    <h3 class="spec-group__heading">正しいアノテーションの場合</h3>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-3" id="全ファイルが passed になること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">全ファイルが passed になること</h4>
+  </div>
+  <ol class="spec-example__steps">
+    <li>vitest fixture で spekta check を実行する</li>
+    <li>終了コードが 0 である</li>
+    <li>passed と表示される</li>
+  </ol>
+</div>
+<div class="spec-group spec-group--depth-3" id="ページ数とセクション数が表示されること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">ページ数とセクション数が表示されること</h4>
+  </div>
+  <ol class="spec-example__steps">
+    <li>vitest fixture で spekta check を実行する</li>
+    <li>page と section の数が表示される</li>
+  </ol>
+</div>
+  </div>
+</div>
+  </div>
+</div>
+      <div class="spec-group spec-group--depth-1" id="spekta doctor">
+  <div class="spec-group__header">
+    <h2 class="spec-group__heading">spekta doctor</h2>
+    <p class="spec-group__summary">プロジェクトの環境と設定を診断するコマンド。</p>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-2" id="Node.js のバージョンを表示すること">
+  <div class="spec-group__header">
+    <h3 class="spec-group__heading">Node.js のバージョンを表示すること</h3>
+  </div>
+</div>
+<div class="spec-group spec-group--depth-2" id="プロジェクトディレクトリで実行した場合">
+  <div class="spec-group__header">
+    <h3 class="spec-group__heading">プロジェクトディレクトリで実行した場合</h3>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-3" id=".spekta.yml が見つかること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">.spekta.yml が見つかること</h4>
+  </div>
+</div>
+<div class="spec-group spec-group--depth-3" id="target_dir が見つかること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">target_dir が見つかること</h4>
+  </div>
+</div>
+  </div>
+</div>
+  </div>
+</div>
+      <div class="spec-group spec-group--depth-1" id="spekta init">
+  <div class="spec-group__header">
+    <h2 class="spec-group__heading">spekta init</h2>
+    <p class="spec-group__summary">プロジェクトの初期設定ファイルを生成するコマンド。</p>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-2" id=".spekta.yml が存在しない場合">
+  <div class="spec-group__header">
+    <h3 class="spec-group__heading">.spekta.yml が存在しない場合</h3>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-3" id=".spekta.yml と .spekta/ が生成されること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">.spekta.yml と .spekta/ が生成されること</h4>
+  </div>
+  <ol class="spec-example__steps">
+    <li>空のディレクトリで spekta init を実行する</li>
+    <li>.spekta.yml が生成される</li>
+    <li>.spekta/ ディレクトリが生成される</li>
+    <li>完了メッセージが出力される</li>
+  </ol>
+</div>
+<div class="spec-group spec-group--depth-3" id="生成された .spekta.yml がコメントアウトされていること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">生成された .spekta.yml がコメントアウトされていること</h4>
+  </div>
+  <ol class="spec-example__steps">
+    <li>spekta init を実行する</li>
+    <li>.spekta.yml の内容がコメントアウトされている</li>
+  </ol>
+</div>
+  </div>
+</div>
+<div class="spec-group spec-group--depth-2" id=".spekta.yml が既に存在する場合">
+  <div class="spec-group__header">
+    <h3 class="spec-group__heading">.spekta.yml が既に存在する場合</h3>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-3" id="エラーで終了すること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">エラーで終了すること</h4>
+  </div>
+  <ol class="spec-example__steps">
+    <li>.spekta.yml が存在するディレクトリで spekta init を実行する</li>
+    <li>エラーメッセージが出力される</li>
+  </ol>
+</div>
+  </div>
+</div>
+  </div>
+</div>
+      <div class="spec-group spec-group--depth-1" id="spekta render">
+  <div class="spec-group__header">
+    <h2 class="spec-group__heading">spekta render</h2>
+    <p class="spec-group__summary">テストファイルの [spekta:*] コメントを読み取ってドキュメントを生成するコマンド。</p>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-2" id="Web Exporter の場合">
+  <div class="spec-group__header">
+    <h3 class="spec-group__heading">Web Exporter の場合</h3>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-3" id="/{pageType}/{pageTitle}/ のディレクトリ構造で HTML が生成されること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">/{pageType}/{pageTitle}/ のディレクトリ構造で HTML が生成されること</h4>
+  </div>
+  <ol class="spec-example__steps">
+    <li>.spekta/web/ 配下にページディレクトリが存在する</li>
+    <li>各ページに index.html が含まれる</li>
+  </ol>
+</div>
+<div class="spec-group spec-group--depth-3" id="index.html がリダイレクトすること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">index.html がリダイレクトすること</h4>
+  </div>
+  <ol class="spec-example__steps">
+    <li>ルートの index.html を読み込む</li>
+    <li>meta refresh によるリダイレクトが設定されている</li>
+  </ol>
+</div>
+<div class="spec-group spec-group--depth-3" id="HTML にページタイトルが含まれること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">HTML にページタイトルが含まれること</h4>
+  </div>
+  <ol class="spec-example__steps">
+    <li>生成された HTML を読み込む</li>
+    <li>タイトル要素が存在する</li>
+  </ol>
+</div>
+  </div>
+</div>
+<div class="spec-group spec-group--depth-2" id="Markdown Exporter の場合">
+  <div class="spec-group__header">
+    <h3 class="spec-group__heading">Markdown Exporter の場合</h3>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-3" id=".md ファイルが生成されること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">.md ファイルが生成されること</h4>
+  </div>
+  <ol class="spec-example__steps">
+    <li>.spekta/markdown/ 配下のファイルを確認する</li>
+    <li>.md ファイルが 1 つ以上存在する</li>
+  </ol>
+</div>
+<div class="spec-group spec-group--depth-3" id="Markdown にページタイトルが h1 として含まれること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">Markdown にページタイトルが h1 として含まれること</h4>
+  </div>
+  <ol class="spec-example__steps">
+    <li>生成された Markdown を読み込む</li>
+    <li>h1 見出しが存在する</li>
+  </ol>
+</div>
+  </div>
+</div>
+  </div>
+</div>
+      <div class="spec-group spec-group--depth-1" id="spekta web:dev">
+  <div class="spec-group__header">
+    <h2 class="spec-group__heading">spekta web:dev</h2>
+    <p class="spec-group__summary">Web Exporter の dev サーバー。ファイル変更を監視し、自動リビルドとライブリロードを提供する。</p>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-2" id="サーバーが起動している場合">
+  <div class="spec-group__header">
+    <h3 class="spec-group__heading">サーバーが起動している場合</h3>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-3" id="HTTP でページを配信できること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">HTTP でページを配信できること</h4>
+  </div>
+</div>
+<div class="spec-group spec-group--depth-3" id="SSE エンドポイントが利用可能であること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">SSE エンドポイントが利用可能であること</h4>
+  </div>
+</div>
+  </div>
+</div>
+<div class="spec-group spec-group--depth-2" id="テストファイルを変更した場合">
+  <div class="spec-group__header">
+    <h3 class="spec-group__heading">テストファイルを変更した場合</h3>
+  </div>
+  <div class="spec-group__children">
+<div class="spec-group spec-group--depth-3" id="自動でリビルドされること">
+  <div class="spec-group__header">
+    <h4 class="spec-group__heading">自動でリビルドされること</h4>
+  </div>
+</div>
+  </div>
+</div>
+  </div>
+</div>
+        </div>
+      </div>
+      <footer class="site-footer">
+      <div class="site-footer__inner">
+        <span class="site-footer__text">Generated by Spekta</span><span class="site-footer__time">2026/03/23 04:44</span>
+      </div>
+    </footer>
+    </main>
+    <button class="menu-toggle" id="menu-toggle" aria-label="メニューを開く">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <line x1="3" y1="5" x2="17" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <line x1="3" y1="15" x2="17" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <script id="spekta-search-data" type="application/json">[{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"spekta annotate","sectionId":"6352521fde714a86ae85d773ee06c46a1946aacb06255ef848d2ea9101f3fe5c"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"annotator が設定されていない場合","sectionId":"88e042d1da2c0f8ad80e66aa5c8791bf94f891792a792912a46891910cf4683f"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"何も処理されずに終了すること","sectionId":"7e92fb63bcec2ecf9b04deea7028d19cfefe27a4b5076b3dd0abf561b7eb8e9a"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"spekta build","sectionId":"35cc7374c267a713382e597463d60d22c8d09b9b7fe34a6ce3d276af0e298b0b"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"spekta check","sectionId":"d3cdf6a40ea0084156c2ec99dca932ad6e79fe66bdd7b464eeb45d3175284342"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"正しいアノテーションの場合","sectionId":"f76b5dfc18eedc1757f3269bce37c71da89a881a589969a96c1b4e1199e9e40c"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"全ファイルが passed になること","sectionId":"ba8c4d0f566f75a180a81d24eb5207cd81fad536412c23357cb7f3dd3a416b28"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"ページ数とセクション数が表示されること","sectionId":"d67402f7c3d5997e60380f28580ee7886eaf6bb995068beeef049fca47137969"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"spekta doctor","sectionId":"6d8d15230cd596ae61eddd45a9b6d795c161366c17f52a8b05a29f4e808e81d0"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"Node.js のバージョンを表示すること","sectionId":"882c51591b6c3e99c1a067526d691992960deb9dd8f051524f7ba9e6781df96f"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"プロジェクトディレクトリで実行した場合","sectionId":"b91dec32614e50ae3cee70334f86377bba718210b42a0b4da148201579145a8f"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":".spekta.yml が見つかること","sectionId":"71a36125f280703380eddfb6727db731cfce21caf6e4e22a8c7af61159663d8a"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"target_dir が見つかること","sectionId":"439325fc40ab145abca9ccc8eebb1e0c382ceab32b324cf248496a5bf30d47e5"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"spekta init","sectionId":"d59627b2776f286d40e7a74ba52c87ee58c92a6dae20f1b561b7f3b71497189f"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":".spekta.yml が存在しない場合","sectionId":"35c13d1dc09e39ffba87cd6d7e77557405d4e78f3b81f5da57276ffdb2d747f6"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":".spekta.yml と .spekta/ が生成されること","sectionId":"b8ab4d97e937d63daf589544cfb4d824c394ce748c9e0d2e4c65f07f7818d538"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"生成された .spekta.yml がコメントアウトされていること","sectionId":"f511974c496eb7857231c5d013e51adedc61421048a34b7d316623c466b152a4"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":".spekta.yml が既に存在する場合","sectionId":"da070ad56e1a009e1e5112b688546c4ef596295f555c657e589944cd61286af5"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"エラーで終了すること","sectionId":"3b89c3dab22d86200d74cd436220d467e445d1ffc26ad99e9eec66d5fcae8d8b"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"spekta render","sectionId":"a758b0ef812d09e88987149595361447c53d26eee59ff150f06624e0d174247e"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"Web Exporter の場合","sectionId":"b60771ee2355885f17109c72d3f9d5b6e443f610172f6f5a834cd2aac788fbb1"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"/{pageType}/{pageTitle}/ のディレクトリ構造で HTML が生成されること","sectionId":"5c99668075b3f8ebb3fae905461207448720161900f9a6c3da770612591397c9"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"index.html がリダイレクトすること","sectionId":"ca0910b6e95d0ee48c6365b70af9dcf53258a5d8c44415cb316caef2ca3444c9"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"HTML にページタイトルが含まれること","sectionId":"972157b00cf9fa3f5c3f96cb9e9bb70348998968097e52d15a12f184058309be"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"Markdown Exporter の場合","sectionId":"93f938a407a2685f9374de2d45ec80c8cff2a518ab0900af2c013907fdd2b936"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":".md ファイルが生成されること","sectionId":"ca11733c17b9297ed9a1ef69038a2d944c17d1fe719ef5cc6f754ecf7af77c78"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"Markdown にページタイトルが h1 として含まれること","sectionId":"a1df1342b1b1bcc8df6bb5bfcf099d4e6209f082451fd31ab23d31ad065c99cd"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"spekta web:dev","sectionId":"bc50738ee83ccfa7d0eb7ae43412d53a8d25b09833136a174f2a666dc55cb238"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"サーバーが起動している場合","sectionId":"1e7205652db4c8e884a6edb7d79acf60edee98e2998aefc644fc848810ecd760"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"HTTP でページを配信できること","sectionId":"f4f43db61ba92c2068979a413d9352b3f3712bac61da8416e58bf9d24a6c3682"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"SSE エンドポイントが利用可能であること","sectionId":"80345d5c57ad0b04ef6809da9b803d869c546ef068eba2a85d84b0e59e14e997"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"テストファイルを変更した場合","sectionId":"eb130e7020e06d2fb0c3f7f2eee2231453efcab162f938c72e4be0e0c4f48c32"},{"pageId":"99bb88401742848e032fd6f51709415fb6be169a72d2e5d7fc44289255160d3c","pageTitle":"cli","sectionTitle":"自動でリビルドされること","sectionId":"ee7573a33de3d5cadfe3ab8f1492ddfa9d8d2ea2e0c7cc9b6b3361881039c610"}]</script>
+    <script>(function() {
+  // --- Mobile Menu ---
+  var menuBtn = document.getElementById('menu-toggle');
+  var sidebar = document.getElementById('sidebar');
+  var mainContent = document.getElementById('main-content');
+  var menuOpen = false;
+
+  function setMenuOpen(open) {
+    menuOpen = open;
+    if (open) {
+      sidebar.classList.add('sidebar--open');
+      menuBtn.classList.add('menu-toggle--active');
+      menuBtn.setAttribute('aria-label', '\u30E1\u30CB\u30E5\u30FC\u3092\u9589\u3058\u308B');
+      menuBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="4" y1="4" x2="16" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="4" x2="4" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    } else {
+      sidebar.classList.remove('sidebar--open');
+      menuBtn.classList.remove('menu-toggle--active');
+      menuBtn.setAttribute('aria-label', '\u30E1\u30CB\u30E5\u30FC\u3092\u958B\u304F');
+      menuBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="3" y1="5" x2="17" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="15" x2="17" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    }
+  }
+
+  if (menuBtn) {
+    menuBtn.addEventListener('click', function() { setMenuOpen(!menuOpen); });
+  }
+  if (mainContent) {
+    mainContent.addEventListener('click', function() { if (menuOpen) setMenuOpen(false); });
+  }
+  if (sidebar) {
+    sidebar.addEventListener('click', function(e) {
+      if (e.target.closest && e.target.closest('a')) { setMenuOpen(false); }
+    });
+  }
+
+  // --- Search ---
+  var searchInput = document.getElementById('spekta-search');
+  var searchResults = document.getElementById('spekta-search-results');
+  var entries = [];
+  try { entries = JSON.parse(document.getElementById('spekta-search-data').textContent); } catch(e) {}
+
+  var selectedIndex = 0;
+
+  function renderResults(query) {
+    if (!query) { searchResults.innerHTML = ''; return; }
+    var q = query.toLowerCase();
+    var filtered = entries.filter(function(e) {
+      var pm = e.pageTitle.toLowerCase().indexOf(q) !== -1;
+      var sm = e.sectionTitle ? e.sectionTitle.toLowerCase().indexOf(q) !== -1 : false;
+      return pm || sm;
+    });
+    selectedIndex = 0;
+    var html = '';
+    for (var i = 0; i < filtered.length; i++) {
+      var entry = filtered[i];
+      var hash = entry.sectionId ? '#' + entry.sectionId : '';
+      var href = '/' + entry.pageId + '/' + hash;
+      var cls = 'search__result' + (i === 0 ? ' search__result--selected' : '');
+      var label = entry.sectionTitle || entry.pageTitle;
+      var context = entry.sectionTitle ? '<span class="search__result-context">' + escHtml(entry.pageTitle) + '</span>' : '';
+      html += '<a href="' + href + '" class="' + cls + '" data-index="' + i + '"><span class="search__result-label">' + escHtml(label) + '</span>' + context + '</a>';
+    }
+    searchResults.innerHTML = html;
+  }
+
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
+  }
+
+  function updateSelected() {
+    var items = searchResults.querySelectorAll('.search__result');
+    for (var i = 0; i < items.length; i++) {
+      if (i === selectedIndex) {
+        items[i].classList.add('search__result--selected');
+        items[i].scrollIntoView({ block: 'nearest' });
+      } else {
+        items[i].classList.remove('search__result--selected');
+      }
+    }
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', function() { renderResults(this.value); });
+    searchInput.addEventListener('focus', function() { if (this.value) renderResults(this.value); });
+    searchInput.addEventListener('blur', function() { setTimeout(function() { searchResults.innerHTML = ''; }, 150); });
+    searchInput.addEventListener('keydown', function(e) {
+      var items = searchResults.querySelectorAll('.search__result');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+        updateSelected();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, 0);
+        updateSelected();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (items[selectedIndex]) { items[selectedIndex].click(); }
+      } else if (e.key === 'Escape') {
+        searchInput.value = '';
+        searchResults.innerHTML = '';
+        searchInput.blur();
+      }
+    });
+  }
+})();
+</script>
+  </body>
+</html>

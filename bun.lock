@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "devDependencies": {
+        "@ktmage/spekta": "workspace:*",
+        "@ktmage/spekta-exporter-markdown": "workspace:*",
+        "@ktmage/spekta-exporter-web": "workspace:*",
         "vitest": "^4.1.0",
       },
     },
