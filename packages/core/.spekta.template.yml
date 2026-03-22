@@ -1,0 +1,12 @@
+# .spekta.yml
+# target_dir: test/
+# include:
+#   - ".test.ts"
+#
+# annotator:
+#   "@ktmage/spekta-annotator-vitest":
+#
+# exporter:
+#   "@ktmage/spekta-exporter-web":
+#     name: "My Project"
+#   "@ktmage/spekta-exporter-markdown":

@@ -10,7 +10,7 @@
     "./plugin": "./dist/schema/plugin.js",
     "./commands": "./dist/commands/exports.js"
   },
-  "files": ["bin", "dist"],
+  "files": ["bin", "dist", ".spekta.template.yml"],
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit"

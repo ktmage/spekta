@@ -28,17 +28,3 @@ export const spektaConfigSchema = z.object({
 });
 
 export type SpektaConfig = z.infer<typeof spektaConfigSchema>;
-
-export const CONFIG_TEMPLATE = `# .spekta.yml
-# target_dir: test/
-# include:
-#   - ".test.ts"
-#
-# annotator:
-#   "@ktmage/spekta-annotator-vitest":
-#
-# exporter:
-#   "@ktmage/spekta-exporter-web":
-#     name: "My Project"
-#   "@ktmage/spekta-exporter-markdown":
-`;
