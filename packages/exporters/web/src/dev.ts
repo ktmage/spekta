@@ -7,10 +7,17 @@ const DEFAULT_PORT = 4321;
 const DEBOUNCE_MS = 500;
 
 export async function dev(config: SpektaConfig): Promise<void> {
-  const { build } = await import("@ktmage/spekta/commands");
+  const { build, render } = await import("@ktmage/spekta/commands");
 
   const targetDir = path.resolve(config.target_dir);
   const outputDir = findOutputDir(config);
+  const webExporterConfig = findWebExporterConfig(config);
+  const autoComplete = webExporterConfig?.auto_complete === true;
+
+  if (autoComplete) {
+    console.log("auto_complete: enabled (unstable)");
+  }
+
   let isRebuilding = false;
 
   console.log("Running initial build...");
@@ -36,7 +43,11 @@ export async function dev(config: SpektaConfig): Promise<void> {
       console.log(`\nFile changed${filename ? `: ${filename}` : ""}. Rebuilding...`);
       isRebuilding = true;
       try {
-        await build(config);
+        if (autoComplete) {
+          await build(config);
+        } else {
+          await render(config);
+        }
         devServer.notifyReload();
         console.log("Rebuild complete.");
       } catch (buildError) {
@@ -74,4 +85,14 @@ function findOutputDir(config: SpektaConfig): string {
     }
   }
   return path.resolve(".spekta/web");
+}
+
+function findWebExporterConfig(config: SpektaConfig): Record<string, unknown> | null {
+  if (!config.exporter) return null;
+  for (const [packageName, exporterConfig] of Object.entries(config.exporter)) {
+    if (packageName.includes("exporter-web")) {
+      return (exporterConfig ?? {}) as Record<string, unknown>;
+    }
+  }
+  return null;
 }
