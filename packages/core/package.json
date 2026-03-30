@@ -1,17 +1,46 @@
 {
   "name": "@ktmage/spekta",
   "version": "0.2.0",
+  "description": "Tests are the spec. Generate living documentation from test code.",
   "type": "module",
+  "license": "MIT",
+  "author": "ktmage",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ktmage/spekta.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/ktmage/spekta",
+  "bugs": "https://github.com/ktmage/spekta/issues",
+  "keywords": ["spekta", "specification", "test", "documentation", "annotation"],
   "bin": {
     "spekta": "./bin/spekta.js"
   },
   "exports": {
-    ".": "./dist/schema/ir.js",
-    "./types": "./dist/schema/types.js",
-    "./plugin": "./dist/schema/plugin.js",
-    "./commands": "./dist/commands/exports.js"
+    ".": {
+      "types": "./dist/schema/ir.d.ts",
+      "default": "./dist/schema/ir.js"
+    },
+    "./types": {
+      "types": "./dist/schema/types.d.ts",
+      "default": "./dist/schema/types.js"
+    },
+    "./plugin": {
+      "types": "./dist/schema/plugin.d.ts",
+      "default": "./dist/schema/plugin.js"
+    },
+    "./commands": {
+      "types": "./dist/commands/exports.d.ts",
+      "default": "./dist/commands/exports.js"
+    }
   },
   "files": ["bin", "dist", ".spekta.template.yml"],
+  "engines": {
+    "node": ">=16.9.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit"
